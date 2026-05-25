@@ -1,11 +1,10 @@
 import React from 'react'
-import generatePresentationKey from '../helpFunctions/generatePresentationKey'
+import generatePresentationKey from './helpFunctions/generatePresentationKey'
 
 const App: React.FC = () => {
-  const priv =
-    ''
+  const priv = import.meta.env.VITE_DEV_PRIVATE_KEY as string;
 
-  generatePresentationKey(priv).then(console.log).catch(console.error)
+    generatePresentationKey(priv).then(console.log).catch(console.error)
 
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>

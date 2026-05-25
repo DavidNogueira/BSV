@@ -15,7 +15,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["vite/client"] // Explicitly list types to include, excluding prop-types
+    "types": ["vite/client", "node"] // Explicitly list types to include, excluding prop-types
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }],
