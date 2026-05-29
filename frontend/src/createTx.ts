@@ -10,9 +10,10 @@ export const createTransaction = async (): Promise<void> => {
     const lockingScript =
       '2102aaa7a5a2e386840889732be8d8264d42198f116903ed9f8f2cc9763c0e9958acac0e4d7920666972737420746f6b656e0849276d204d6174744630440220187800c3732512ef3d3ccdf741966b45f4251f879ac933160837a03d1c98a420022064c4d3fb3c07b12c47aae5baef7890e996ffa680e32fb8aa678c7f06ff0d37bd6d75'
     const walletClient = new WalletClient()
-    //? We use this metod to list actions and calculate the total satoshis from those actions before creating a new transaction.
+    //? We use this method to list actions and calculate the total satoshis from those actions before creating a new transaction.
     //? This is useful for debugging and ensuring that we have the correct inputs for our transaction.
     const listedActions = await walletClient.listActions({
+      limit: 10000, //* TODO TOME: investigate if we can set the "limit" as unlimited
       labels: []
     })
     //? we can log the listed actions to see what inputs are available for our transaction creation and to verify that the wallet is returning the expected data.
@@ -26,9 +27,9 @@ export const createTransaction = async (): Promise<void> => {
     console.log('Total satoshis from listed actions:', totalSatoshis)
 
     //? Define a potential fee for the transaction to ensure that we have enough funds to cover the transaction costs. This is important for debugging and preventing transaction creation failures due to insufficient funds.
-    //* TODO: Define a potential fee for the transaction to ensure that we have enough funds to cover the transaction costs.
+    //* TODO TOME: Define a potential fee for the transaction to ensure that we have enough funds to cover the transaction costs.
     //* This is important for debugging and preventing transaction creation failures due to insufficient funds.
-    const potentialFee = 0
+    const potentialFee = 0 //* TODO TOME: Check if we can see the fee before the transaction is created
     const outputSatoshis = 5
     const args: CreateActionArgs = {
       description: 'Create a transaction',
@@ -37,7 +38,7 @@ export const createTransaction = async (): Promise<void> => {
         {
           lockingScript,
           satoshis: outputSatoshis,
-          outputDescription: 'Output with 5 satoshis and a locking script fifi8'
+          outputDescription: 'Output with 5 satoshis and a locking script'
         }
       ]
     }
