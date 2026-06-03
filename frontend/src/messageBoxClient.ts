@@ -13,9 +13,9 @@ let walletClient: WalletClient
 export async function initializeClient() {
   try {
     console.log('[initializeClient] Creating WalletClient...')
-    // TODO: Initialize the WalletClient with the following requirements:
-    // - Use the 'json-api' type and 'localhost' as the host
-    // - Assign the instance to the walletClient variable
+    //~ DONE: Initialize the WalletClient with the following requirements:
+    //~ - Use the 'json-api' type and 'localhost' as the host
+    //~ - Assign the instance to the walletClient variable
     walletClient = new WalletClient('json-api', 'localhost') // Replace this line in your TODO section
 
     console.log('[initializeClient] Creating MessageBoxClient...')
@@ -23,7 +23,7 @@ export async function initializeClient() {
       host: MESSAGEBOX_HOST,
       networkPreset: 'mainnet',
       walletClient,
-      enableLogging: true,
+      enableLogging: true
     })
 
     console.log('[initializeClient] Initializing MessageBoxClient...')
@@ -58,12 +58,19 @@ export async function getMyIdentityKey(): Promise<string> {
 export async function sendMessage(recipient: string, body: string) {
   try {
     console.log('[sendMessage] Sending message to:', recipient)
-    // TODO: Send a message with the following requirements:
-    // - Use the client.sendMessage method
-    // - Set the recipient to the provided recipient parameter
-    // - Use 'L3_inbox' as the messageBox
-    // - Set the body to the provided body parameter
-    await client.sendMessage({ recipient, messageBox: 'L3_inbox', body })//Adicionei
+    //~ DONE: Send a message with the following requirements:
+
+    //~ - Use the client.sendMessage method
+    //~ - Set the recipient to the provided recipient parameter
+    //~ - Use 'L3_inbox' as the messageBox
+    //~ - Set the body to the provided body parameter
+
+    // Send message to John
+    await client.sendMessage({
+      recipient,
+      messageBox: 'L3_inbox',
+      body
+    })
     console.log('[sendMessage] Message sent successfully.')
   } catch (error) {
     console.error('[sendMessage] Failed to send message:', error)
@@ -96,7 +103,10 @@ export async function acknowledgeMessages(messageIds: string[]) {
     await client.acknowledgeMessage({ messageIds })
     console.log('[acknowledgeMessages] Messages acknowledged successfully.')
   } catch (error) {
-    console.error('[acknowledgeMessages] Failed to acknowledge messages:', error)
+    console.error(
+      '[acknowledgeMessages] Failed to acknowledge messages:',
+      error
+    )
     throw error
   }
 }

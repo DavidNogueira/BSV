@@ -24,6 +24,9 @@ export default function App() {
   const [identityKey, setIdentityKey] = useState<string | null>(null)
 
   useEffect(() => {
+    //? We use a flag (hasComponentRemount) to ensure that the transaction creation function is only called once when the app starts. This prevents multiple transactions from being created if the component re-renders for any reason, which is important for debugging and ensuring that we don't create unintended transactions.
+    if (hasComponentRemount) return
+    hasComponentRemount = true
     // Initialize the MessageBoxClient and fetch identity key
     const init = async () => {
       try {
@@ -53,12 +56,21 @@ export default function App() {
 
   const handleListMessages = async () => {
     try {
-      // TODO: Implement the logic to list messages with the following requirements:
-      // - Call the listMessages function to retrieve messages
-      // - Update the messages state with the retrieved messages
-      // - If an error occurs, catch it, log it to the console with the prefix "List messages error:", and show an alert with the message "Failed to list messages."
-      const msgs = await listMessages() //Adicionei
-      setMessages(msgs)
+      //~ DONE: Implement the logic to list messages with the following requirements:
+      //~ - Call the listMessages function to retrieve messages
+      //~ - Update the messages state with the retrieved messages
+      //~ - If an error occurs, catch it, log it to the console with the prefix "List messages error:", and show an alert with the message "Failed to list messages."
+      const retrievedMessages = await listMessages()
+      console.log('Retrieved messages:', retrievedMessages)
+      // Transform the retrieved messages to match the PeerMessage structure
+      const formattedMessages: PeerMessage[] = retrievedMessages.map(
+        (msg: any) => ({
+          messageId: msg.messageId,
+          sender: msg.senderKey || msg.sender,
+          body: msg.body
+        })
+      )
+      setMessages(formattedMessages)
     } catch (error) {
       console.error('List messages error:', error)
       alert('Failed to list messages.')
@@ -67,20 +79,19 @@ export default function App() {
 
   const handleAcknowledge = async () => {
     try {
-      // TODO: Implement the logic to acknowledge messages with the following requirements:
-      // - Validate that selectedMessageIds is not empty; if empty, show an alert with the message "Please select messages to acknowledge." and return early
-      // - Call the acknowledgeMessages function with selectedMessageIds as the argument
-      // - If successful, show an alert with the message "Messages acknowledged!"
-      // - Refresh the inbox by calling handleListMessages
-      // - If an error occurs, catch it, log it to the console with the prefix "Acknowledge error:", and show an alert with the message "Failed to acknowledge messages."
+      //~ DONE: Implement the logic to acknowledge messages with the following requirements:
+      //~ - Validate that selectedMessageIds is not empty; if empty, show an alert with the message "Please select messages to acknowledge." and return early
+      //~ - Call the acknowledgeMessages function with selectedMessageIds as the argument
+      //~ - If successful, show an alert with the message "Messages acknowledged!"
+      //~ - Refresh the inbox by calling handleListMessages
+      //~ - If an error occurs, catch it, log it to the console with the prefix "Acknowledge error:", and show an alert with the message "Failed to acknowledge messages."
       if (selectedMessageIds.length === 0) {
-        //Adicionei
         alert('Please select messages to acknowledge.')
         return
       }
       await acknowledgeMessages(selectedMessageIds)
       alert('Messages acknowledged!')
-      await handleListMessages()
+      handleListMessages()
     } catch (error) {
       console.error('Acknowledge error:', error)
       alert('Failed to acknowledge messages.')
@@ -94,16 +105,14 @@ export default function App() {
         : [...prev, messageId]
     )
   }
-
-  //Adicionei
+  //~ DONE: Add a loading indicator while the identity key is being fetched:
+  // - If identityKey is null, render a <p> element with the text "Fetching identity key..."
+  // - Otherwise, render the full UI below
   if (identityKey === null) {
     return <p>Fetching identity key...</p>
   }
 
   return (
-    // TODO: Add a loading indicator while the identity key is being fetched:
-    // - If identityKey is null, render a <p> element with the text "Fetching identity key..."
-    // - Otherwise, render the full UI below
     <div style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
       <h1>Lab L-3 Implementing a Basic Messaging Application</h1>
 
@@ -161,8 +170,8 @@ export default function App() {
               />
               <strong>From:</strong> {msg.sender}
               <br />
-              <strong>Message:</strong>{' '}
-              {typeof msg.body === 'string'
+              <strong>Message:</strong>
+              {typeof msg.body === 'string' //* TODO TOME: change misleading coding pracice.
                 ? msg.body
                 : JSON.stringify(msg.body)}
             </li>
