@@ -1,5 +1,5 @@
 {
-  "name": "lab-l1-frontend",
+  "name": "lab-l4-frontend",
   "version": "1.0.0",
   "description": "Lab L-1: Creating a Transaction Frontend",
   "scripts": {
@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@bsv/message-box-client": "^1.4.2",
+    "hello-tokens": "^0.1.10",
     "@bsv/sdk": "^2.1.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
