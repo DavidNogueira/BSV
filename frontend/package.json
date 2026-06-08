@@ -1,7 +1,7 @@
 {
   "name": "lab-l4-frontend",
   "version": "1.0.0",
-  "description": "Lab L-1: Creating a Transaction Frontend",
+  "description": "Lab L-4: Submitting and Querying Tokens with Overlay Services",
   "scripts": {
     "start": "vite",
     "build": "vite build",
@@ -11,6 +11,11 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "overrides": {
+    "hello-tokens": {
+      "@bsv/sdk": "^2.1.4"
+    }
+  },
   "dependencies": {
     "hello-tokens": "^0.1.10",
     "@bsv/sdk": "^2.1.4",

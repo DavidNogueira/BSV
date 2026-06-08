@@ -1,4 +1,4 @@
-import { WERR_REVIEW_ACTIONS, WalletClient } from '@bsv/sdk' // Add WalletClient import
+import { WERR_REVIEW_ACTIONS } from '@bsv/sdk'
 import { createToken, queryTokens } from 'hello-tokens'
 
 /**
@@ -65,16 +65,11 @@ export async function queryToken(originalMessage: string): Promise<string> {
   })
   console.log('[queryToken] Found tokens:', tokens)
 
-  try {
-    if (tokens.length === 0) {
-      console.error('[queryToken] No Hello World tokens found')
-      throw new Error('No Hello World tokens found')
-    }
-
-    console.log('[queryToken] First matched message:', tokens[0])
-    return tokens[0].message
-  } catch (error) {
-    console.error('Error during token query:', error)
-    throw error
+  if (tokens.length === 0) {
+    console.error('[queryToken] No Hello World tokens found')
+    throw new Error('No Hello World tokens found')
   }
+
+  console.log('[queryToken] First matched message:', tokens[0])
+  return tokens[0].message
 }
