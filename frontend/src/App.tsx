@@ -74,61 +74,77 @@ const App: React.FC = () => {
   }
 
   return (
-    // TODO: Add a loading indicator while checking for the Metanet client:
-    // - If isCheckingMnc is true, render a <Box> with display="flex", flexDirection="column", alignItems="center", and justifyContent="center"
-    // - Inside the Box, include a <CircularProgress> with size={40} and sx={{ mb: 2 }}
-    // - Include a <Typography> with variant="body1" and the text "Checking for Metanet client..."
-    // - Otherwise, render the full UI below
-    <Container maxWidth="md" sx={{ paddingTop: '2em', paddingBottom: '2em' }}>
-      <NoMncModal open={isMncMissing} onClose={() => setIsMncMissing(false)} />
-      <Grid container spacing={2}>
-        <Grid item xs={12} sx={{ mb: 2 }}>
-          <Typography
-            variant="h4"
-            align="center"
-            sx={{ fontWeight: 'bold', mb: 1 }}
-          >
-            UHRP Storage UI
-          </Typography>
-          <Typography
-            color="textSecondary"
-            paragraph
-            align="center"
-            sx={{ mb: 3 }}
-          >
-            Upload and Download Content
-          </Typography>
-          <Tabs
-            value={tabIndex}
-            onChange={handleTabChange}
-            indicatorColor="primary"
-            textColor="primary"
-            variant="fullWidth"
-            sx={{
-              '& .MuiTab-root': {
-                borderRadius: '4px 4px 0 0',
-                fontWeight: 'medium',
-                py: 1.5
-              }
-            }}
-          >
-            <Tab label="Download" />
-            <Tab label="Upload" />
-            <Tab label="Files" />
-          </Tabs>
+    //~ DONE: Add a loading indicator while checking for the Metanet client:
+    //~ - If isCheckingMnc is true, render a <Box> with display="flex", flexDirection="column", alignItems="center", and justifyContent="center"
+    //~ - Inside the Box, include a <CircularProgress> with size={40} and sx={{ mb: 2 }}
+    //~ - Include a <Typography> with variant="body1" and the text "Checking for Metanet client..."
+    //~ - Otherwise, render the full UI below
+    isCheckingMnc ? (
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+        sx={{ height: '100vh' }}
+      >
+        <CircularProgress size={40} sx={{ mb: 2 }} />
+        <Typography variant="body1">Checking for Metanet client...</Typography>
+      </Box>
+    ) : (
+      <Container maxWidth="md" sx={{ paddingTop: '2em', paddingBottom: '2em' }}>
+        <NoMncModal
+          open={isMncMissing}
+          onClose={() => setIsMncMissing(false)}
+        />
+        <Grid container spacing={2}>
+          <Grid item xs={12} sx={{ mb: 2 }}>
+            <Typography
+              variant="h4"
+              align="center"
+              sx={{ fontWeight: 'bold', mb: 1 }}
+            >
+              UHRP Storage UI
+            </Typography>
+            <Typography
+              color="textSecondary"
+              paragraph
+              align="center"
+              sx={{ mb: 3 }}
+            >
+              Upload and Download Content
+            </Typography>
+            <Tabs
+              value={tabIndex}
+              onChange={handleTabChange}
+              indicatorColor="primary"
+              textColor="primary"
+              variant="fullWidth"
+              sx={{
+                '& .MuiTab-root': {
+                  borderRadius: '4px 4px 0 0',
+                  fontWeight: 'medium',
+                  py: 1.5
+                }
+              }}
+            >
+              <Tab label="Download" />
+              <Tab label="Upload" />
+              <Tab label="Files" />
+            </Tabs>
+          </Grid>
+          <Grid item xs={12}>
+            <div style={{ minHeight: '400px' }}>
+              {tabIndex === 0 && <DownloadForm />}
+              {tabIndex === 1 && <UploadForm />}
+              {tabIndex === 2 && <FilesForm />}
+            </div>
+          </Grid>
+          <Grid item xs={12}>
+            <Footer />
+          </Grid>
         </Grid>
-        <Grid item xs={12}>
-          <div style={{ minHeight: '400px' }}>
-            {tabIndex === 0 && <DownloadForm />}
-            {tabIndex === 1 && <UploadForm />}
-            {tabIndex === 2 && <FilesForm />}
-          </div>
-        </Grid>
-        <Grid item xs={12}>
-          <Footer />
-        </Grid>
-      </Grid>
-    </Container>
+      </Container>
+    )
   )
 }
 

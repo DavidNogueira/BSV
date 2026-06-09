@@ -1,25 +1,3 @@
-// import React from 'react'
-// import ReactDOM from 'react-dom/client'
-// import App from './App'
-// // import { initializeClient } from './messageBoxClient'
-
-// // // Initialize the MessageBoxClient when the app starts
-// // initializeClient()
-// //   .then(() => {
-// //     console.log('MessageBoxClient initialized successfully')
-// //   })
-// //   .catch(error => {
-// //     console.error('Failed to initialize MessageBoxClient:', error)
-// //   })
-
-// // Render the React app
-// const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
-// root.render(
-//   <React.StrictMode>
-//     <App />
-//   </React.StrictMode>
-// )
-
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { CssBaseline } from '@mui/material'
@@ -31,11 +9,20 @@ import 'react-toastify/dist/ReactToastify.css'
 
 const rootElement = document.getElementById('root') as HTMLElement
 if (!rootElement) {
-  // TODO: Add fallback rendering in case the root element is missing:
-  // - Create a new div element with document.createElement('div')
-  // - Set its style to { padding: '2rem', fontFamily: 'Arial, sans-serif' }
-  // - Set its innerHTML to include an <h1> with the text "Initialization Error" and a <p> with the text "Root element not found. Please check your index.html."
-  // - Append the div to document.body
+  //~ DONE: Add fallback rendering in case the root element is missing:
+  //~ - Create a new div element with document.createElement('div')
+  //~ - Set its style to { padding: '2rem', fontFamily: 'Arial, sans-serif' }
+  //~ - Set its innerHTML to include an <h1> with the text "Initialization Error" and a <p> with the text "Root element not found. Please check your index.html."
+  //~ - Append the div to document.body
+  //? NOTE: If #root is missing, the app simply fails. Anything beyond that is mostly theater.
+  const errorDiv = document.createElement('div')
+  errorDiv.style.padding = '2rem'
+  errorDiv.style.fontFamily = 'Arial, sans-serif'
+  errorDiv.innerHTML = `
+    <h1>Initialization Error</h1>
+    <p>Root element not found. Please check your index.html.</p>
+  `
+  document.body.appendChild(errorDiv)
 } else {
   const root = ReactDOM.createRoot(rootElement)
   root.render(

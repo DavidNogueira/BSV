@@ -77,18 +77,50 @@ const UploadForm: React.FC<UploadFormProps> = () => {
     e.preventDefault()
     setLoading(true)
     setActionTXID('')
-    // TODO: Implement the logic to upload a file to UHRP storage with the following requirements:
-    // - Initialize a WalletClient with 'auto' type and 'localhost' as the host
-    // - Create a StorageUploader instance with the storageURL and wallet
-    // - Ensure a file is selected, throwing an error with the message "No file was uploaded!" if not
-    // - Read the file into an ArrayBuffer using file.arrayBuffer()
-    // - If reading the ArrayBuffer fails, throw an error with the message "Failed to read the file. Please try again with a valid file."
-    // - Convert the ArrayBuffer to a number array using Uint8Array and Array.from
-    // - Create an uploadable file object with data, size, and type properties
-    // - Use StorageUploader.publishFile to upload the file with the specified retentionPeriod (hostingMinutes)
-    // - Set the results state with the uhrpURL from the upload result
-    // - Catch any errors, log them with the prefix "Upload failed:", display a toast error with "Upload failed", and rethrow the error
-    // - In a finally block, set loading to false and reset uploadProgress to 0
+    //~ DONE: Implement the logic to upload a file to UHRP storage with the following requirements:
+    //~ - Initialize a WalletClient with 'auto' type and 'localhost' as the host
+    //~ - Create a StorageUploader instance with the storageURL and wallet
+    //~ - Ensure a file is selected, throwing an error with the message "No file was uploaded!" if not
+    //~ - Read the file into an ArrayBuffer using file.arrayBuffer()
+    //~ - If reading the ArrayBuffer fails, throw an error with the message "Failed to read the file. Please try again with a valid file."
+    //~ - Convert the ArrayBuffer to a number array using Uint8Array and Array.from
+    //~ - Create an uploadable file object with data, size, and type properties
+    //~ - Use StorageUploader.publishFile to upload the file with the specified retentionPeriod (hostingMinutes)
+    //~ - Set the results state with the uhrpURL from the upload result
+    //~ - Catch any errors, log them with the prefix "Upload failed:", display a toast error with "Upload failed", and rethrow the error
+    //~ - In a finally block, set loading to false and reset uploadProgress to 0
+    try {
+      const wallet = new WalletClient('auto', 'localhost')
+      const uploader = new StorageUploader({ storageURL, wallet })
+
+      if (!file) {
+        throw new Error('No file was uploaded!')
+      }
+      const arrayBuffer = await file.arrayBuffer().catch(() => {
+        throw new Error(
+          'Failed to read the file. Please try again with a valid file.'
+        )
+      })
+
+      const data = Array.from(new Uint8Array(arrayBuffer))
+      const uploadableFile = {
+        data: data,
+        size: file.size,
+        type: file.type
+      }
+      const uploadResult = await uploader.publishFile({
+        file: uploadableFile,
+        retentionPeriod: hostingMinutes,
+      })
+      setResults({ uhrpURL: uploadResult.uhrpURL })
+    } catch (error) {
+      console.error('Upload failed:', error)
+      toast.error('Upload failed')
+      throw error
+    } finally {
+      setLoading(false)
+      setUploadProgress(0)
+    }
   }
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {

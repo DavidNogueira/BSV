@@ -137,13 +137,30 @@ const FilesForm: React.FC<FilesFormProps> = () => {
   const loadFiles = async () => {
     setLoading(true)
     setError('')
-    // TODO: Implement the logic to load your uploaded files from UHRP storage with the following requirements:
-    // - Initialize a WalletClient with 'auto' type and 'localhost' as the host
-    // - Create a StorageUploader instance with the storageURL and wallet
-    // - Use StorageUploader.listUploads to retrieve the list of uploaded files
-    // - Set the files state with the result, defaulting to an empty array if null
-    // - Catch any errors, log them with the prefix "Error loading files:", set the error state to "Failed to load files. Please ensure your wallet is connected.", display a toast error with "Failed to load files", and rethrow the error
-    // - In a finally block, set loading to false
+    //~ DONE: Implement the logic to load your uploaded files from UHRP storage with the following requirements:
+    //~ - Initialize a WalletClient with 'auto' type and 'localhost' as the host
+    //~ - Create a StorageUploader instance with the storageURL and wallet
+    //~ - Use StorageUploader.listUploads to retrieve the list of uploaded files
+    //~ - Set the files state with the result, defaulting to an empty array if null
+    //~ - Catch any errors, log them with the prefix "Error loading files:", set the error state to "Failed to load files. Please ensure your wallet is connected.", display a toast error with "Failed to load files", and rethrow the error
+    //~ - In a finally block, set loading to false
+
+    try {
+      const wallet = new WalletClient('auto', 'localhost')
+      const storageUploader = new StorageUploader({
+        storageURL,
+        wallet
+      })
+      const result = await storageUploader.listUploads()
+      setFiles(result || [])
+    } catch (err) {
+      console.error('Error loading files:', err)
+      setError('Failed to load files. Please ensure your wallet is connected.')
+      toast.error('Failed to load files')
+      throw err
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleSelectChange = (e: SelectChangeEvent<string>) => {

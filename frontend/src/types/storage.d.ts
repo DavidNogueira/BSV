@@ -24,12 +24,19 @@ declare module '@bsv/sdk/storage/StorageUploader' {
     newExpiryTime?: number
     amount?: number
   }
-
+  interface UploadFileResult {
+    published: boolean
+    uhrpURL: string
+  }
   export class StorageUploader {
     constructor(options: StorageUploaderOptions)
     listUploads(): Promise<ListUploadsResult[]>
+    publishFile(params: {
+      file: UploadableFile
+      retentionPeriod: number
+    }): Promise<UploadFileResult>
     renewFile(
-      uhrpUrl: string,
+      uhrpURL: string,
       additionalMinutes: number
     ): Promise<RenewFileResult>
     findFile(uhrpUrl: string): Promise<FindFileData>
