@@ -1,7 +1,7 @@
 {
   "name": "lab-l5-frontend",
   "version": "1.0.0",
-  "description": "Lab L-1: Creating a Transaction Frontend",
+  "description": "Lab L-5: UHRP Storage UI",
   "scripts": {
     "start": "vite",
     "build": "vite build",

@@ -1,7 +1,7 @@
 {
   "name": "lab-l5",
   "version": "1.0.0",
-  "description": "Lab L-1: Creating a Transaction",
+  "description": "Lab L-5: UHRP Storage UI",
   "main": "index.js",
   "scripts": {
     "lars": "lars",
