@@ -41,20 +41,25 @@ export async function searchIdentities(
     console.log('[searchIdentities] Raw results:', results)
 
     const lowercaseTerm = searchTerm.toLowerCase()
+    //~ DONE: Enhance search to filter on name, username, and email
+    //~ - Filter results to match lowercaseTerm against res.name, res.username, and res.email
+    //~ - Handle optional fields using ?. and .filter(Boolean) to exclude undefined/null
+    //~ - Use .some() to check if any field includes lowercaseTerm
+    //~ - Maintain deduplication by identityKey in the unique array
+    
+    const filtered = results.filter(res => {
+      const searchableFields = [res.name, res.username, res.email]
+        .filter(Boolean)
+        .map(field => field!.toLowerCase())
 
-    const filtered = results.filter(res =>
-      res.name?.toLowerCase().includes(lowercaseTerm)
-    )
+      return searchableFields.some(field => field.includes(lowercaseTerm))
+    })
+
     const unique = Array.from(
       new Map(filtered.map(r => [r.identityKey, r])).values()
     )
 
     console.log('[searchIdentities] Filtered results:', unique)
-    // TODO: Enhance search to filter on name, username, and email
-    // - Filter results to match lowercaseTerm against res.name, res.username, and res.email
-    // - Handle optional fields using ?. and .filter(Boolean) to exclude undefined/null
-    // - Use .some() to check if any field includes lowercaseTerm
-    // - Maintain deduplication by identityKey in the unique array
     return unique
   } catch (err) {
     console.error('[searchIdentities] Failed to search identities:', err)

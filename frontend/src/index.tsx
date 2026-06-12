@@ -8,7 +8,7 @@ import web3Theme from './Utils/theme'
 
 const rootElement = document.getElementById('root')
 if (!rootElement) {
-  // TODO: Add a development safeguard if the root element is missing:
+  // DONE IN LAB 5: Add a development safeguard if the root element is missing:
   // - Create a new div element with document.createElement('div')
   // - Set its innerHTML to include an <h1> with the text "Missing Root Element" and a <p> with the text "The root element was not found. Please check your index.html."
   // - Append the div to document.body
