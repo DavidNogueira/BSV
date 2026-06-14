@@ -1,7 +1,7 @@
 {
-  "name": "lab-l1-frontend",
+  "name": "lab-l7-frontend",
   "version": "1.0.0",
-  "description": "Lab L-1: Creating a Transaction Frontend",
+  "description": "Lab L-7: Implementing ToDo List Application with PushDrop",
   "scripts": {
     "start": "vite",
     "build": "vite build",
