@@ -38,8 +38,8 @@ export async function createTaskToken(
   //~ 2. Create a locking script using pushdrop.lock with the encrypted ciphertext, PROTOCOL_ID, KEY_ID, 'self', and true for locking.
   //~ 3. Call walletClient.createAction to create a transaction with the locking script, amount in satoshis, BASKET_NAME, and appropriate options (randomizeOutputs: false, acceptDelayedBroadcast: false).
   //~ 4. Verify that tx and txid are returned; throw an error if not.
-  // 5. Return an object with txid and script.
-  // 6. Handle errors, including WERR_REVIEW_ACTIONS, and log detailed error information.
+  //~ 5. Return an object with txid and script.
+  //~ 6. Handle errors, including WERR_REVIEW_ACTIONS, and log detailed error information.
 
   try {
     const { tx, txid } = await walletClient.createAction({
@@ -90,8 +90,6 @@ export async function createTaskToken(
     }
     throw err
   }
-
-  return { txid: '', script: '' }
 }
 
 export async function loadTasks(): Promise<

@@ -1,29 +1,3 @@
-// import React, { useEffect, useState } from 'react'
-// let hasComponentRemount = false
-
-// export default function App() {
-//   const [identityKey, setIdentityKey] = useState<string | null>(null)
-
-//   useEffect(() => {
-//     //? We use a flag (hasComponentRemount) to ensure that the transaction creation function is only called once when the app starts. This prevents multiple transactions from being created if the component re-renders for any reason, which is important for debugging and ensuring that we don't create unintended transactions.
-//     if (hasComponentRemount) return
-//     hasComponentRemount = true
-
-//     const init = async () => {
-//       try {
-//         await initializeClient()
-//         const key = await getMyIdentityKey()
-//         setIdentityKey(key)
-//       } catch (err) {
-//         console.error('Initialization error:', err)
-//       }
-//     }
-//     init()
-//   }, [])
-
-//   return <div>Whatever code</div>
-// }
-
 import React, { useEffect, useState } from 'react'
 import { createTaskToken, loadTasks, redeemTask } from './ToDoManager'
 import {
@@ -40,11 +14,13 @@ import {
 import Footer from './Utils/footer'
 
 export default function App() {
-  const [tasks, setTasks] = useState<Array<{
-    task: string,
-    sats: number,
-    token: { txid: string, outputIndex: number, lockingScript: any }
-  }>>([])
+  const [tasks, setTasks] = useState<
+    Array<{
+      task: string
+      sats: number
+      token: { txid: string; outputIndex: number; lockingScript: any }
+    }>
+  >([])
 
   const [newTask, setNewTask] = useState('')
   const [creating, setCreating] = useState(false)
@@ -87,7 +63,9 @@ export default function App() {
       await fetchTasks()
     } catch (err: any) {
       console.error(err)
-      setStatus(`Failed to create task: ${err.message}. Check Metanet client connectivity.`)
+      setStatus(
+        `Failed to create task: ${err.message}. Check Metanet client connectivity.`
+      )
     } finally {
       setCreating(false)
     }
@@ -127,7 +105,7 @@ export default function App() {
             fullWidth
             label="New Task"
             value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
+            onChange={e => setNewTask(e.target.value)}
           />
           <Button
             variant="contained"
@@ -169,7 +147,10 @@ export default function App() {
                 <ListItem
                   key={idx}
                   secondaryAction={
-                    <Button variant="outlined" onClick={() => handleRedeem(idx)}>
+                    <Button
+                      variant="outlined"
+                      onClick={() => handleRedeem(idx)}
+                    >
                       Complete
                     </Button>
                   }
