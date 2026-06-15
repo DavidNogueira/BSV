@@ -94,22 +94,22 @@ export async function createCard(
 }
 
 export async function loadCards(): Promise<CardData[]> {
-  // TODO: Implement the logic to load collectible card tokens with fields: name, description, rarity, ability, history, sats:
+  // DONE: Implement the logic to load collectible card tokens with fields: name, description, rarity, ability, history, sats:
   //~ 1. Use walletClient.listOutputs to fetch outputs from BASKET_NAME, including entire transactions and custom instructions.
   //~ 2. For each output, extract txid and outputIndex from the outpoint.
   //~ 3. Parse the transaction from BEEF data and get the locking script.
   //~ 4. Decode the PushDrop script to extract the encoded card attributes (JSON string).
   //~ 5. Parse the JSON string to retrieve name, description, rarity, and ability.
-  // 6. Extract keyID and history from customInstructions (if available).
-  // 7. Build a CardData object for each valid output, including satoshis, txid, outputIndex, outputScript, keyID, and history.
-  // 8. Filter out invalid entries and return the list of CardData objects.
+  //~ 6. Extract keyID and history from customInstructions (if available).
+  //~ 7. Build a CardData object for each valid output, including satoshis, txid, outputIndex, outputScript, keyID, and history.
+  //~ 8. Filter out invalid entries and return the list of CardData objects.
   const { outputs, BEEF } = await walletClient.listOutputs({
     basket: BASKET_NAME,
     include: 'entire transactions',
     includeCustomInstructions: true
   })
 
-  console.log('outputs-------', outputs)
+  console.log('outputs: ', outputs)
 
   const validOutputs = outputs.map((entry: any) => {
     const { outpoint, satoshis, lockingScript, customInstructions } = entry
@@ -129,7 +129,6 @@ export async function loadCards(): Promise<CardData[]> {
         return null
       }
       const encodedAttributes = decoded.fields[0]
-      console.log('encodedAttributes!!-------', encodedAttributes)
       const cardAttributesString = Utils.toUTF8(encodedAttributes)
       const cardAttributes = JSON.parse(cardAttributesString)
       console.log('cardAttributes-------->', cardAttributes)
@@ -148,13 +147,29 @@ export async function loadCards(): Promise<CardData[]> {
           )
         }
       }
+
+      const cardData: CardData = {
+        name,
+        description,
+        rarity,
+        ability,
+        history,
+        sats: satoshis,
+        txid,
+        outputIndex: outputNumber,
+        outputScript: script.toHex(),
+        keyID
+      }
+      return cardData
     } catch (err) {
       console.error('Error processing output:', err)
       return null
     }
   })
 
-  return []
+  return validOutputs.filter(
+    (card: CardData | null): card is CardData => card !== null
+  )
 }
 
 export async function redeemCard(card: CardData): Promise<void> {
