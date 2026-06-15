@@ -70,12 +70,27 @@ export default function App() {
     if (!newTask.trim()) return
     setCreating(true)
     setStatus('Creating task...')
-    // TODO: Enhance the error-handling logic for task creation:
-    // 1. Verify that newTask is not empty and meets any length requirements (e.g., at least 3 characters).
-    // 2. Call createTaskToken with newTask and a fixed amount (e.g., 1 satoshi).
-    // 3. On success, clear newTask, update status to 'Task created!', and refresh the task list by calling fetchTasks.
-    // 4. On error, update status with a user-friendly message (e.g., 'Failed to create task: [error message]. Check Metanet client connectivity.').
-    // 5. Ensure creating state is reset in a finally block.
+    //~ DONE: Enhance the error-handling logic for task creation:
+    //~ 1. Verify that newTask is not empty and meets any length requirements (e.g., at least 3 characters).
+    //~ 2. Call createTaskToken with newTask and a fixed amount (e.g., 1 satoshi).
+    //~ 3. On success, clear newTask, update status to 'Task created!', and refresh the task list by calling fetchTasks.
+    //~ 4. On error, update status with a user-friendly message (e.g., 'Failed to create task: [error message]. Check Metanet client connectivity.').
+    //~ 5. Ensure creating state is reset in a finally block.
+    try {
+      if (newTask.length < 3) {
+        setStatus('Task must be at least 3 characters long.')
+        return
+      }
+      await createTaskToken(newTask, 1)
+      setNewTask('')
+      setStatus('Task created!')
+      await fetchTasks()
+    } catch (err: any) {
+      console.error(err)
+      setStatus(`Failed to create task: ${err.message}. Check Metanet client connectivity.`)
+    } finally {
+      setCreating(false)
+    }
   }
 
   const handleRedeem = async (idx: number) => {

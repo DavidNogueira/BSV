@@ -20,13 +20,76 @@ export async function createTaskToken(
 ) {
   console.log('[createTaskToken] Encrypting task:', task)
 
-  // TODO: Implement the logic to create a task token by encrypting the task and broadcasting a transaction:
-  // 1. Use walletClient.encrypt to encrypt the task with PROTOCOL_ID and KEY_ID, converting the task to a UTF-8 array using Utils.toArray.
-  // 2. Create a locking script using pushdrop.lock with the encrypted ciphertext, PROTOCOL_ID, KEY_ID, 'self', and true for locking.
-  // 3. Call walletClient.createAction to create a transaction with the locking script, amount in satoshis, BASKET_NAME, and appropriate options (randomizeOutputs: false, acceptDelayedBroadcast: false).
-  // 4. Verify that tx and txid are returned; throw an error if not.
+  const { ciphertext } = await walletClient.encrypt({
+    plaintext: Utils.toArray(task),
+    protocolID: PROTOCOL_ID,
+    keyID: KEY_ID
+  })
+
+  const lockingScript = await pushdrop.lock(
+    [ciphertext],
+    PROTOCOL_ID,
+    KEY_ID,
+    'self',
+    true
+  )
+  //~ DONE: Implement the logic to create a task token by encrypting the task and broadcasting a transaction:
+  //~ 1. Use walletClient.encrypt to encrypt the task with PROTOCOL_ID and KEY_ID, converting the task to a UTF-8 array using Utils.toArray.
+  //~ 2. Create a locking script using pushdrop.lock with the encrypted ciphertext, PROTOCOL_ID, KEY_ID, 'self', and true for locking.
+  //~ 3. Call walletClient.createAction to create a transaction with the locking script, amount in satoshis, BASKET_NAME, and appropriate options (randomizeOutputs: false, acceptDelayedBroadcast: false).
+  //~ 4. Verify that tx and txid are returned; throw an error if not.
   // 5. Return an object with txid and script.
   // 6. Handle errors, including WERR_REVIEW_ACTIONS, and log detailed error information.
+
+  try {
+    const { tx, txid } = await walletClient.createAction({
+      description: 'Create ToDo Task Token',
+      outputs: [
+        {
+          lockingScript: lockingScript.toHex(),
+          satoshis: amount,
+          outputDescription: 'ToDo task token output',
+          basket: BASKET_NAME
+        }
+      ],
+
+      options: { randomizeOutputs: false, acceptDelayedBroadcast: false }
+    })
+
+    if (!tx || !txid) {
+      throw new Error('Failed to create task token transaction')
+    }
+
+    return { txid, script: lockingScript.toHex() }
+  } catch (err) {
+    if (err instanceof WERR_REVIEW_ACTIONS) {
+      console.error('[createTaskToken] Wallet threw WERR_REVIEW_ACTIONS:', {
+        code: err.code,
+        message: err.message,
+        reviewActionResults: err.reviewActionResults,
+        sendWithResults: err.sendWithResults,
+        txid: err.txid,
+        tx: err.tx,
+        noSendChange: err.noSendChange
+      })
+    } else if (err instanceof Error) {
+      console.error(
+        '[createTaskToken] Task token creation failed with error status:',
+        {
+          message: err.message,
+          name: err.name,
+          stack: err.stack,
+          error: err
+        }
+      )
+    } else {
+      console.error(
+        '[createTaskToken] Task token creation failed with unknown error:',
+        err
+      )
+    }
+    throw err
+  }
 
   return { txid: '', script: '' }
 }
