@@ -17,7 +17,6 @@ import {
   Chip
 } from '@mui/material'
 import { createCard, loadCards, redeemCard, CardData } from './CardManager'
-// import Footer from './Utils/footer'
 
 const App: React.FC = () => {
   // Form input states
@@ -376,7 +375,6 @@ const App: React.FC = () => {
           )}
         </Box>
       </Container>
-      {/* <Footer /> */}
     </>
   )
 }

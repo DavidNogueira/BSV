@@ -57,7 +57,7 @@ export async function createCard(
     'self',
     true
   )
-  // TODO: Implement the logic to create a collectible card token + metadata with required fields: name, description, rarity, ability, history, sats:
+  //~ DONE: Implement the logic to create a collectible card token + metadata with required fields: name, description, rarity, ability, history, sats:
   //~ 1. Generate a unique keyID using generateUniqueKeyID.
   //~ 2. Create a JSON object with card attributes (name, description, rarity, ability) and convert it to a UTF-8 array using Utils.toArray.
   //~ 3. Use pushdrop.lock to create a locking script with the encoded attributes, PROTOCOL_ID, keyID, 'self', and true for locking.
@@ -94,7 +94,7 @@ export async function createCard(
 }
 
 export async function loadCards(): Promise<CardData[]> {
-  // DONE: Implement the logic to load collectible card tokens with fields: name, description, rarity, ability, history, sats:
+  //~ DONE: Implement the logic to load collectible card tokens with fields: name, description, rarity, ability, history, sats:
   //~ 1. Use walletClient.listOutputs to fetch outputs from BASKET_NAME, including entire transactions and custom instructions.
   //~ 2. For each output, extract txid and outputIndex from the outpoint.
   //~ 3. Parse the transaction from BEEF data and get the locking script.
@@ -173,11 +173,68 @@ export async function loadCards(): Promise<CardData[]> {
 }
 
 export async function redeemCard(card: CardData): Promise<void> {
-  // TODO: Implement the logic to redeem a collectible card token:
-  // 1. Fetch BEEF data from walletClient.listOutputs for BASKET_NAME, including entire transactions.
-  // 2. Parse the card’s outputScript into a LockingScript.
-  // 3. Create an unlocker with pushdrop.unlock using PROTOCOL_ID, card.keyID, 'self', 'all', false, card.sats, and the parsed script.
-  // 4. Call walletClient.createAction with the card’s outpoint, unlockingScriptLength: 73, and options: randomizeOutputs: false, acceptDelayedBroadcast: false.
-  // 5. Sign the transaction using unlocker.sign and submit it via walletClient.signAction.
-  // 6. Handle errors, including WERR_REVIEW_ACTIONS, and log detailed error information.
+  try {
+    const { BEEF } = await walletClient.listOutputs({
+      basket: BASKET_NAME,
+      include: 'entire transactions'
+    })
+
+    if (!BEEF) {
+      throw new Error('Failed to fetch BEEF data for redemption')
+    }
+
+    const lockingScript = LockingScript.fromHex(card.outputScript)
+    console.log('Locking script for redemption:', lockingScript)
+
+    const unlocker = await pushdrop.unlock(
+      PROTOCOL_ID,
+      card.keyID,
+      'self',
+      'all',
+      false,
+      card.sats,
+      lockingScript
+    )
+
+    const { signableTransaction } = await walletClient.createAction({
+      description: 'Redeem Collectible Card Token',
+      inputBEEF: BEEF,
+      inputs: [
+        {
+          outpoint: `${card.txid}.${card.outputIndex}`,
+          inputDescription: 'Redeem collectible card token input',
+          unlockingScriptLength: 73 // 73 because the unlocking script is 73 bytes long (1 byte for OP_PUSHDATA1, 1 byte for the length of the signature, 71 bytes for the signature itself)
+        }
+      ],
+      options: { randomizeOutputs: false, acceptDelayedBroadcast: false }
+    })
+    console.log('signableTransaction for redemption:', signableTransaction)
+    //~ DONE: Implement the logic to redeem a collectible card token:
+    //~ 1. Fetch BEEF data from walletClient.listOutputs for BASKET_NAME, including entire transactions.
+    //~ 2. Parse the card’s outputScript into a LockingScript.
+    //~ 3. Create an unlocker with pushdrop.unlock using PROTOCOL_ID, card.keyID, 'self', 'all', false, card.sats, and the parsed script.
+    //~ 4. Call walletClient.createAction with the card’s outpoint, unlockingScriptLength: 73, and options: randomizeOutputs: false, acceptDelayedBroadcast: false.
+    //~ 5. Sign the transaction using unlocker.sign and submit it via walletClient.signAction.
+    //~ 6. Handle errors, including WERR_REVIEW_ACTIONS, and log detailed error information.
+
+    const signedTx = await unlocker.sign(
+      Transaction.fromBEEF(signableTransaction!.tx),
+      card.outputIndex
+    )
+    await walletClient.signAction({
+      reference: signableTransaction!.reference,
+      spends: {
+        [card.outputIndex]: {
+          unlockingScript: signedTx.toHex()
+        }
+      }
+    })
+  } catch (err) {
+    if (err instanceof WERR_REVIEW_ACTIONS) {
+      console.error('WERR_REVIEW_ACTIONS error during redemption:', err)
+    } else {
+      console.error('Error redeeming collectible card token:', err)
+    }
+    throw err
+  }
 }
