@@ -261,7 +261,9 @@ export async function encryptForFriend(
       plaintext
     })
     if (!ciphertext) throw new Error('Ciphertext is undefined')
-    const { publicKey: senderIdentity } = await walletClient.getPublicKey({ identityKey: true })
+    const { publicKey: senderIdentity } = await walletClient.getPublicKey({
+      identityKey: true
+    })
     return { ciphertext: toHex(ciphertext), senderIdentity }
   } catch (error) {
     throw new Error(`encryptForFriend failed: ${(error as Error).message}`)
@@ -288,7 +290,10 @@ export async function decryptFromFriend(
     validatePublicKey(friendIdentity)
     const ciphertextArray = fromHex(ciphertext)
     const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Decryption timed out after 10 seconds')), 10000)
+      setTimeout(
+        () => reject(new Error('Decryption timed out after 10 seconds')),
+        10000
+      )
     )
     const decryptPromise = walletClient.decrypt({
       protocolID: [0, 'cryption'],
@@ -470,16 +475,20 @@ export async function switchProfile(
   // 5. Optionally, explore triggering a profile switch programmatically via Metanet client APIs (if supported) to automate the process.
   // 6. Handle errors by throwing them with a descriptive message.
   // Note: This function replaces the waitForWalletSwitch logic in index.tsx and App.tsx, enabling profile switching for Tests 3 and 7 within cryptionManager.ts.
-try {
+  try {
     const startTime = Date.now()
     while (Date.now() - startTime < timeoutMs) {
       await new Promise(resolve => setTimeout(resolve, 1000))
-      const { publicKey } = await walletClient.getPublicKey({ identityKey: true })
+      const { publicKey } = await walletClient.getPublicKey({
+        identityKey: true
+      })
       if (publicKey !== initialIdentity) {
         return publicKey
       }
     }
-    throw new Error(`Profile switch to ${targetProfile} timed out after ${timeoutMs}ms`)
+    throw new Error(
+      `Profile switch to ${targetProfile} timed out after ${timeoutMs}ms`
+    )
   } catch (error) {
     throw new Error(`switchProfile failed: ${(error as Error).message}`)
   }
@@ -487,5 +496,4 @@ try {
 
 // Export WalletClient class, walletClient instance, and functions for use in index.tsx and App.tsx
 
-  
 export { WalletClient, walletClient }

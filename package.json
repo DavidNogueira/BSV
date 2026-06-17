@@ -1,7 +1,7 @@
 {
-  "name": "lab-l1",
+  "name": "lab-l8.5",
   "version": "1.0.0",
-  "description": "Lab L-1: Creating a Transaction",
+  "description": "Lab L-8.5: Encryption and Signing with BSV SDK (using LARS)",
   "main": "index.js",
   "scripts": {
     "lars": "lars",

@@ -36,7 +36,7 @@ async function fetchFriendIdentity(
     })
     if (!senderIdentity) {
       throw new Error(
-        "Default profile's public key is undefined. Please ensure your \"default\" profile is active in Metanet client."
+        'Default profile\'s public key is undefined. Please ensure your "default" profile is active in Metanet client.'
       )
     }
     console.log(
@@ -54,7 +54,10 @@ async function fetchFriendIdentity(
       'friend',
       60000
     )
-    console.log('switchProfile succeeded! New identity:', friendIdentityFromSwitch)
+    console.log(
+      'switchProfile succeeded! New identity:',
+      friendIdentityFromSwitch
+    )
     console.log('Waiting 2 seconds for Metanet client to stabilize...')
     await delay(2000)
     console.log('Proceeding after delay.')
@@ -91,7 +94,7 @@ async function fetchFriendIdentity(
         )
         if (retryCount === maxRetries - 1) {
           throw new Error(
-            "Failed to fetch friend's identity key after multiple attempts. Please ensure a \"friend\" profile is active in Metanet client."
+            'Failed to fetch friend\'s identity key after multiple attempts. Please ensure a "friend" profile is active in Metanet client.'
           )
         }
         await delay(2000)
@@ -111,11 +114,7 @@ async function fetchFriendIdentity(
     // Ensure you also update App.tsx for Tests 3 and 7 to use switchProfile.
     // Partial implementation will break the app.
     setShowDefaultModal(true)
-    await switchProfile(
-      friendIdentityFromSwitch,
-      'default',
-      60000
-    )
+    await switchProfile(friendIdentityFromSwitch, 'default', 60000)
     console.log('switchProfile succeeded for default profile switch.')
     console.log('Waiting 2 seconds for Metanet client to stabilize...')
     await delay(2000)
