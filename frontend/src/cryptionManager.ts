@@ -465,6 +465,20 @@ export async function switchProfile(
 }
 
 // Export WalletClient class, walletClient instance, and functions for use in index.tsx and App.tsx
+try {
+    const startTime = Date.now()
+    while (Date.now() - startTime < timeoutMs) {
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      const { publicKey } = await walletClient.getPublicKey({ identityKey: true })
+      if (publicKey !== initialIdentity) {
+        return publicKey
+      }
+    }
+    throw new Error(`Profile switch to ${targetProfile} timed out after ${timeoutMs}ms`)
+  } catch (error) {
+    throw new Error(`switchProfile failed: ${(error as Error).message}`)
+  }
+  
 export {
   WalletClient,
   walletClient,
