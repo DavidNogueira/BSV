@@ -120,7 +120,7 @@ async function createTestCertificate(): Promise<Certificate> {
 // Utility to convert number[] to hex string
 const toHex = (array: number[]): string => {
   return Array.from(array)
-    .map(byte => byte.toString(16).padStart(2, '0'))
+    .map(byte => (byte & 0xff).toString(16).padStart(2, '0'))
     .join('')
 }
 
@@ -315,6 +315,7 @@ export async function signForSelf(message: string): Promise<string> {
   // 4. Parse the signature using Signature.fromDER and convert it to a hex string using toHex.
   // 5. Return the hex string.
   // 6. Handle errors by throwing them with a descriptive message.
+  throw new Error('Not implemented')
 }
 
 /**
@@ -332,6 +333,7 @@ export async function verifyForSelf(
   // 5. Use walletClient.verifySignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty 'self', forSelf true, and the message and signature arrays.
   // 6. Return the valid property of the response.
   // 7. Handle errors by logging them and returning false.
+  throw new Error('Not implemented')
 }
 
 /**
@@ -349,6 +351,7 @@ export async function signForFriend(
   // 5. Parse the signature using Signature.fromDER and convert it to a hex string using toHex.
   // 6. Return the hex string.
   // 7. Handle errors by throwing them with a descriptive message.
+  throw new Error('Not implemented')
 }
 
 /**
@@ -366,6 +369,7 @@ export async function verifyFromFriend(
   // 4. Use walletClient.verifySignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty friendIdentity, forSelf false, and the message and signature arrays.
   // 5. Return the valid property of the response.
   // 6. Handle errors by logging them and returning false.
+  throw new Error('Not implemented')
 }
 
 /**
@@ -379,6 +383,7 @@ export async function signForAnyone(message: string): Promise<string> {
   // 4. Parse the signature using Signature.fromDER and convert it to a hex string using toHex.
   // 5. Return the hex string.
   // 6. Handle errors by throwing them with a descriptive message.
+  throw new Error('Not implemented')
 }
 
 /**
@@ -398,6 +403,7 @@ export async function verifyForAnyone(
   // 6. Use walletClient.verifySignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty signerIdentity, forSelf false, and the message and signature arrays.
   // 7. Return the valid property of the response.
   // 8. Handle errors by logging them and returning false.
+  throw new Error('Not implemented')
 }
 
 /**
@@ -425,6 +431,7 @@ export async function proveCertificate(
   // 10. Otherwise, decode fields using Utils.toArray and Utils.toUTF8, treating errors as plain strings.
   // 11. Return an object with decodedCertificateFields as an array of field objects.
   // 12. Handle errors by throwing them with a descriptive message.
+  throw new Error('Not implemented')
 }
 
 /**
@@ -444,6 +451,7 @@ export async function signTransaction(
   // 8. Submit the signed transaction using walletClient.signAction.
   // 9. Verify the basket outputs using walletClient.listOutputs.
   // 10. Handle errors by throwing them with a descriptive message.
+  throw new Error('Not implemented')
 }
 
 /**
@@ -462,9 +470,6 @@ export async function switchProfile(
   // 5. Optionally, explore triggering a profile switch programmatically via Metanet client APIs (if supported) to automate the process.
   // 6. Handle errors by throwing them with a descriptive message.
   // Note: This function replaces the waitForWalletSwitch logic in index.tsx and App.tsx, enabling profile switching for Tests 3 and 7 within cryptionManager.ts.
-}
-
-// Export WalletClient class, walletClient instance, and functions for use in index.tsx and App.tsx
 try {
     const startTime = Date.now()
     while (Date.now() - startTime < timeoutMs) {
@@ -478,21 +483,9 @@ try {
   } catch (error) {
     throw new Error(`switchProfile failed: ${(error as Error).message}`)
   }
-  
-export {
-  WalletClient,
-  walletClient,
-  encryptForSelf,
-  decryptForSelf,
-  encryptForFriend,
-  decryptFromFriend,
-  signForSelf,
-  verifyForSelf,
-  signForFriend,
-  verifyFromFriend,
-  signForAnyone,
-  verifyForAnyone,
-  proveCertificate,
-  signTransaction,
-  switchProfile
 }
+
+// Export WalletClient class, walletClient instance, and functions for use in index.tsx and App.tsx
+
+  
+export { WalletClient, walletClient }
