@@ -36,11 +36,11 @@ async function fetchFriendIdentity(
     })
     if (!senderIdentity) {
       throw new Error(
-        'Default profile’s public key is undefined. Please ensure your "default" profile is active in Metanet client.'
+        "Default profile's public key is undefined. Please ensure your \"default\" profile is active in Metanet client."
       )
     }
     console.log(
-      'Default Profile’s Public Key (initial wallet):',
+      "Default Profile's Public Key (initial wallet):",
       senderIdentity
     )
 
@@ -48,7 +48,6 @@ async function fetchFriendIdentity(
     // Implement switchProfile in cryptionManager.ts and uncomment the code below to use it.
     // Ensure you also update App.tsx for Tests 3 and 7 to use switchProfile.
     // Partial implementation will break the app.
-    /*
     setShowFriendModal(true)
     const friendIdentityFromSwitch = await switchProfile(
       senderIdentity,
@@ -60,12 +59,6 @@ async function fetchFriendIdentity(
     await delay(2000)
     console.log('Proceeding after delay.')
     setShowFriendModal(false)
-    */
-
-    // Placeholder: Replace with switchProfile implementation
-    throw new Error(
-      'switchProfile not implemented. Complete the switchProfile TODO in cryptionManager.ts and uncomment the code above.'
-    )
 
     // Note: The following code assumes switchProfile was successful
     let friendIdentity: string | undefined
@@ -84,13 +77,13 @@ async function fetchFriendIdentity(
         console.log('getPublicKey response:', response)
         friendIdentity = response.publicKey
         if (!friendIdentity) {
-          throw new Error('Friend’s identity key is undefined in the response.')
+          throw new Error("Friend's identity key is undefined in the response.")
         }
-        console.log('Friend’s Identity Key (self call):', friendIdentity)
+        console.log("Friend's Identity Key (self call):", friendIdentity)
         break
       } catch (error) {
         console.error(
-          `Failed to fetch friend’s identity key (self call, attempt ${
+          `Failed to fetch friend's identity key (self call, attempt ${
             retryCount + 1
           }/${maxRetries}):`,
           (error as Error).message,
@@ -98,7 +91,7 @@ async function fetchFriendIdentity(
         )
         if (retryCount === maxRetries - 1) {
           throw new Error(
-            'Failed to fetch friend’s identity key after multiple attempts. Please ensure a "friend" profile is active in Metanet client.'
+            "Failed to fetch friend's identity key after multiple attempts. Please ensure a \"friend\" profile is active in Metanet client."
           )
         }
         await delay(2000)
@@ -110,14 +103,13 @@ async function fetchFriendIdentity(
     if (friendIdentity) {
       ;(window as any).friendIdentityKey = friendIdentity
     } else {
-      throw new Error('Failed to fetch friend’s identity key.')
+      throw new Error("Failed to fetch friend's identity key.")
     }
 
     // TODO: Extra Credit - Implement profile switching:
     // Implement switchProfile in cryptionManager.ts and uncomment the code below to switch back to default.
     // Ensure you also update App.tsx for Tests 3 and 7 to use switchProfile.
     // Partial implementation will break the app.
-    /*
     setShowDefaultModal(true)
     await switchProfile(
       friendIdentityFromSwitch,
@@ -129,24 +121,18 @@ async function fetchFriendIdentity(
     await delay(2000)
     console.log('Proceeding after delay.')
     setShowDefaultModal(false)
-    */
-
-    // Placeholder: Replace with switchProfile implementation
-    throw new Error(
-      'switchProfile not implemented. Complete the switchProfile TODO in cryptionManager.ts and uncomment the code above.'
-    )
 
     if (!friendIdentity) {
       throw new Error(
-        'Friend’s identity key is undefined. Cannot proceed with friend-related tests.'
+        "Friend's identity key is undefined. Cannot proceed with friend-related tests."
       )
     }
 
     console.log(
-      'Setup complete. Friend’s identity key fetched. Proceed with tests in the UI.'
+      "Setup complete. Friend's identity key fetched. Proceed with tests in the UI."
     )
 
-    return friendIdentity
+    return friendIdentity!
   } catch (error) {
     console.error(
       'Error during startup setup:',
@@ -212,7 +198,7 @@ const Root: React.FC = () => {
               <h2>Switch to Friend Profile</h2>
               <p>
                 Please switch to a "friend" profile in Metanet client to fetch
-                your friend’s identity key. If you don’t have a "friend"
+                your friend's identity key. If you don't have a "friend"
                 profile, create one now.
               </p>
               <p>Waiting for wallet switch...</p>
@@ -247,7 +233,7 @@ const Root: React.FC = () => {
             >
               <h2>Switch Back to Default Profile</h2>
               <p>
-                The app has fetched your friend’s identity key. Now, please
+                The app has fetched your friend's identity key. Now, please
                 switch back to your "default" profile in Metanet client to
                 proceed with the remaining tests.
               </p>
