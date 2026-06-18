@@ -173,7 +173,7 @@ const App: React.FC = () => {
         setTest6FriendIdentity(friendKey)
         setTest9VerifierIdentity(friendKey)
         setTest3FriendIdentity(friendKey)
-        setTest7FriendIdentity(friendKey)
+        setTest7FriendIdentity(defaultKey)
       } catch (error) {
         console.error(
           'Failed to fetch identity key for App.tsx:',
@@ -387,12 +387,14 @@ const App: React.FC = () => {
         throw new Error('Friend’s identity key is not available.')
       }
       const signature = await signForFriend(test6Message, test6FriendIdentity)
+      const { publicKey: signerIdentity } = await walletClientInstance.getPublicKey({ identityKey: true })
       setResults((prev: { [key: string]: string }) => ({
         ...prev,
         test6: `Signature: ${signature}`
       }))
       setTest7Signature(signature)
       setTest7Message(test6Message)
+      setTest7FriendIdentity(signerIdentity)
       markTestCompleted('test6')
     } catch (error) {
       setResults((prev: { [key: string]: string }) => ({

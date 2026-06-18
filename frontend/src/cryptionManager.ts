@@ -386,7 +386,21 @@ export async function signForFriend(
   // 5. Parse the signature using Signature.fromDER and convert it to a hex string using toHex.
   // 6. Return the hex string.
   // 7. Handle errors by throwing them with a descriptive message.
-  throw new Error('Not implemented')
+  try {
+    validatePublicKey(friendIdentity)
+    const data = Utils.toArray(message, 'utf8') as number[]
+    const { signature } = await walletClient.createSignature({
+      protocolID: [0, 'cryption'],
+      keyID: KEY_ID,
+      counterparty: friendIdentity,
+      data
+    })
+    if (!signature) throw new Error('Signature is undefined')
+    const signatureObj = Signature.fromDER(signature)
+    return toHex(signatureObj.toDER() as number[])
+  } catch (error) {
+    throw new Error(`signForFriend failed: ${(error as Error).message}`)
+  }
 }
 
 /**
@@ -404,7 +418,23 @@ export async function verifyFromFriend(
   // 4. Use walletClient.verifySignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty friendIdentity, forSelf false, and the message and signature arrays.
   // 5. Return the valid property of the response.
   // 6. Handle errors by logging them and returning false.
-  throw new Error('Not implemented')
+  try {
+    validatePublicKey(friendIdentity)
+    const data = Utils.toArray(message, 'utf8') as number[]
+    const signatureArray = fromHex(signature)
+    const { valid } = await walletClient.verifySignature({
+      protocolID: [0, 'cryption'],
+      keyID: KEY_ID,
+      counterparty: friendIdentity,
+      forSelf: false,
+      data,
+      signature: signatureArray
+    })
+    return valid
+  } catch (error) {
+    console.error('verifyFromFriend failed:', error)
+    return false
+  }
 }
 
 /**
