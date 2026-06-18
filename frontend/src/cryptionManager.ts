@@ -187,7 +187,7 @@ const decryptCertificateType = (
  * Encrypt a message for yourself (e.g., Alice encrypts for Alice).
  */
 export async function encryptForSelf(message: string): Promise<string> {
-  // TODO: Implement the logic to encrypt a message for yourself with the following requirements:
+  // DONE: Implement the logic to encrypt a message for yourself with the following requirements:
   // 1. Convert the message to a UTF-8 byte array using Utils.toArray.
   // 2. Use walletClient.encrypt with protocolID [0, 'cryption'], keyID KEY_ID, counterparty 'self', and the message array as plaintext.
   // 3. Check if the ciphertext is defined; if not, throw an error.
@@ -213,7 +213,7 @@ export async function encryptForSelf(message: string): Promise<string> {
  * Decrypt a message encrypted for yourself (e.g., Alice decrypts her own message).
  */
 export async function decryptForSelf(ciphertext: string): Promise<string> {
-  // TODO: Implement the logic to decrypt a message for yourself with the following requirements:
+  // DONE: Implement the logic to decrypt a message for yourself with the following requirements:
   // 1. Convert the ciphertext hex string to a byte array using fromHex.
   // 2. Use walletClient.decrypt with protocolID [0, 'cryption'], keyID KEY_ID, counterparty 'self', and the ciphertext array.
   // 3. Check if the plaintext is defined; if not, throw an error.
@@ -242,7 +242,7 @@ export async function encryptForFriend(
   message: string,
   friendIdentity: string
 ): Promise<{ ciphertext: string; senderIdentity: string }> {
-  // TODO: Implement the logic to encrypt a message for a friend with the following requirements:
+  // DONE: Implement the logic to encrypt a message for a friend with the following requirements:
   // 1. Validate the friendIdentity using validatePublicKey.
   // 2. Convert the message to a UTF-8 byte array using Utils.toArray.
   // 3. Use walletClient.encrypt with protocolID [0, 'cryption'], keyID KEY_ID, counterparty friendIdentity, and the message array as plaintext.
@@ -277,7 +277,7 @@ export async function decryptFromFriend(
   ciphertext: string,
   friendIdentity: string
 ): Promise<string> {
-  // TODO: Implement the logic to decrypt a message from a friend with the following requirements:
+  // DONE: Implement the logic to decrypt a message from a friend with the following requirements:
   // 1. Validate the friendIdentity using validatePublicKey.
   // 2. Convert the ciphertext hex string to a byte array using fromHex.
   // 3. Use walletClient.decrypt with protocolID [0, 'cryption'], keyID KEY_ID, counterparty friendIdentity, and the ciphertext array.
@@ -313,14 +313,27 @@ export async function decryptFromFriend(
  * Sign a message for yourself (e.g., Alice signs for Alice).
  */
 export async function signForSelf(message: string): Promise<string> {
-  // TODO: Implement the logic to sign a message for yourself with the following requirements:
+  // DONE: Implement the logic to sign a message for yourself with the following requirements:
   // 1. Convert the message to a UTF-8 byte array using Utils.toArray.
   // 2. Use walletClient.createSignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty 'self', and the message array as data.
   // 3. Check if the signature is defined; if not, throw an error.
   // 4. Parse the signature using Signature.fromDER and convert it to a hex string using toHex.
   // 5. Return the hex string.
   // 6. Handle errors by throwing them with a descriptive message.
-  throw new Error('Not implemented')
+  try {
+    const data = Utils.toArray(message, 'utf8') as number[]
+    const { signature } = await walletClient.createSignature({
+      protocolID: [0, 'cryption'],
+      keyID: KEY_ID,
+      counterparty: 'self',
+      data
+    })
+    if (!signature) throw new Error('Signature is undefined')
+    const signatureObj = Signature.fromDER(signature)
+    return toHex(signatureObj.toDER() as number[])
+  } catch (error) {
+    throw new Error(`signForSelf failed: ${(error as Error).message}`)
+  }
 }
 
 /**
@@ -330,7 +343,7 @@ export async function verifyForSelf(
   message: string,
   signature: string
 ): Promise<boolean> {
-  // TODO: Implement the logic to verify a self-signed message with the following requirements:
+  // DONE: Implement the logic to verify a self-signed message with the following requirements:
   // 1. Fetch the public key using walletClient.getPublicKey with identityKey true.
   // 2. Validate the public key using validatePublicKey.
   // 3. Convert the message to a UTF-8 byte array using Utils.toArray.
@@ -338,7 +351,24 @@ export async function verifyForSelf(
   // 5. Use walletClient.verifySignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty 'self', forSelf true, and the message and signature arrays.
   // 6. Return the valid property of the response.
   // 7. Handle errors by logging them and returning false.
-  throw new Error('Not implemented')
+  try {
+    const { publicKey } = await walletClient.getPublicKey({ identityKey: true })
+    validatePublicKey(publicKey)
+    const data = Utils.toArray(message, 'utf8') as number[]
+    const signatureArray = fromHex(signature)
+    const { valid } = await walletClient.verifySignature({
+      protocolID: [0, 'cryption'],
+      keyID: KEY_ID,
+      counterparty: 'self',
+      forSelf: true,
+      data,
+      signature: signatureArray
+    })
+    return valid
+  } catch (error) {
+    console.error('verifyForSelf failed:', error)
+    return false
+  }
 }
 
 /**
@@ -475,23 +505,19 @@ export async function switchProfile(
   // 5. Optionally, explore triggering a profile switch programmatically via Metanet client APIs (if supported) to automate the process.
   // 6. Handle errors by throwing them with a descriptive message.
   // Note: This function replaces the waitForWalletSwitch logic in index.tsx and App.tsx, enabling profile switching for Tests 3 and 7 within cryptionManager.ts.
-  try {
-    const startTime = Date.now()
-    while (Date.now() - startTime < timeoutMs) {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      const { publicKey } = await walletClient.getPublicKey({
-        identityKey: true
-      })
+  const startTime = Date.now()
+  while (Date.now() - startTime < timeoutMs) {
+    await new Promise(resolve => setTimeout(resolve, 200))
+    try {
+      const { publicKey } = await walletClient.getPublicKey({ identityKey: true })
       if (publicKey !== initialIdentity) {
         return publicKey
       }
+    } catch {
+      // wallet may be temporarily unavailable during profile switch, keep polling
     }
-    throw new Error(
-      `Profile switch to ${targetProfile} timed out after ${timeoutMs}ms`
-    )
-  } catch (error) {
-    throw new Error(`switchProfile failed: ${(error as Error).message}`)
   }
+  throw new Error(`switchProfile failed: Profile switch to "${targetProfile}" timed out after ${timeoutMs}ms`)
 }
 
 // Export WalletClient class, walletClient instance, and functions for use in index.tsx and App.tsx
