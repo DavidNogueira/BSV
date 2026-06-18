@@ -75,21 +75,18 @@ async function waitForWalletSwitch(
 const App: React.FC = () => {
   const [test1Message, setTest1Message] = useState('test 1')
   const [test1Ciphertext, setTest1Ciphertext] = useState('')
+  const [defaultIdentity, setDefaultIdentity] = useState('')
+  const [friendIdentity, setFriendIdentity] = useState('')
   const [test2Message, setTest2Message] = useState('test 2')
-  const [test2FriendIdentity, setTest2FriendIdentity] = useState('')
   const [test3Ciphertext, setTest3Ciphertext] = useState('')
-  const [test3FriendIdentity, setTest3FriendIdentity] = useState('')
   const [test4Message, setTest4Message] = useState('test 4')
   const [test5Message, setTest5Message] = useState('test 5')
   const [test5Signature, setTest5Signature] = useState('')
   const [test6Message, setTest6Message] = useState('test 6')
-  const [test6FriendIdentity, setTest6FriendIdentity] = useState('')
   const [test7Message, setTest7Message] = useState('test 7')
   const [test7Signature, setTest7Signature] = useState('')
-  const [test7FriendIdentity, setTest7FriendIdentity] = useState('')
   const [test8Message, setTest8Message] = useState('test 8')
   const [test9CertFields, setTest9CertFields] = useState('email')
-  const [test9VerifierIdentity, setTest9VerifierIdentity] = useState('')
   const [test10Basket, setTest10Basket] = useState('signing demo')
   const [showFriendModal, setShowFriendModal] = useState(false)
   const [showDefaultModal, setShowDefaultModal] = useState(false)
@@ -169,11 +166,8 @@ const App: React.FC = () => {
         const defaultKey = defaultResponse.publicKey
         console.log('Default profile identity key:', defaultKey)
 
-        setTest2FriendIdentity(friendKey)
-        setTest6FriendIdentity(friendKey)
-        setTest9VerifierIdentity(friendKey)
-        setTest3FriendIdentity(friendKey)
-        setTest7FriendIdentity(defaultKey)
+        setFriendIdentity(friendKey)
+        setDefaultIdentity(defaultKey)
       } catch (error) {
         console.error(
           'Failed to fetch identity key for App.tsx:',
@@ -250,19 +244,19 @@ const App: React.FC = () => {
   const handleTest2 = async () => {
     try {
       console.log('handleTest2: Starting encryption for friend...')
-      if (!test2FriendIdentity) {
+      if (!friendIdentity) {
         throw new Error('Friend’s identity key is not available.')
       }
       const { ciphertext, senderIdentity } = await encryptForFriend(
         test2Message,
-        test2FriendIdentity
+        friendIdentity
       )
       setResults((prev: { [key: string]: string }) => ({
         ...prev,
         test2: `Ciphertext: ${ciphertext}, Sender: ${senderIdentity}`
       }))
       setTest3Ciphertext(ciphertext)
-      setTest3FriendIdentity(senderIdentity)
+      setDefaultIdentity(senderIdentity)
       markTestCompleted('test2')
     } catch (error) {
       setResults((prev: { [key: string]: string }) => ({
@@ -275,7 +269,7 @@ const App: React.FC = () => {
   const handleTest3 = async () => {
     try {
       console.log('handleTest3: Starting decryption from friend...')
-      if (!test3FriendIdentity) {
+      if (!defaultIdentity) {
         throw new Error('Friend’s identity key is not available.')
       }
       if (!test3Ciphertext) {
@@ -287,11 +281,8 @@ const App: React.FC = () => {
       // Ensure you also update index.tsx and handleTest7 in this file to use switchProfile.
       // Partial implementation will break the app.
       setShowFriendModal(true)
-      const { publicKey: currentIdentity } = await walletClientInstance.getPublicKey({
-        identityKey: true
-      })
       const friendIdentityFromSwitch = await switchProfile(
-        currentIdentity,
+        defaultIdentity,
         'friend',
         60000
       )
@@ -304,7 +295,7 @@ const App: React.FC = () => {
       // Perform decryption with friend profile
       const plaintext = await decryptFromFriend(
         test3Ciphertext,
-        test3FriendIdentity
+        defaultIdentity
       )
 
       // TODO: Extra Credit - Switch back to default profile:
@@ -313,7 +304,7 @@ const App: React.FC = () => {
       // Partial implementation will break the app.
       setShowDefaultModal(true)
       await switchProfile(
-        friendIdentityFromSwitch,
+        friendIdentity,
         'default',
         60000
       )
@@ -343,9 +334,9 @@ const App: React.FC = () => {
           identityKey: true
         })
       console.log('Current identity before Test 4:', currentIdentityBeforeSign)
-      if (currentIdentityBeforeSign !== test3FriendIdentity) {
+      if (currentIdentityBeforeSign !== defaultIdentity) {
         throw new Error(
-          `Incorrect profile active. Expected "default" profile with identity ${test3FriendIdentity}, but found ${currentIdentityBeforeSign}. Please ensure the "default" profile is active.`
+          `Incorrect profile active. Expected "default" profile with identity ${defaultIdentity}, but found ${currentIdentityBeforeSign}. Please ensure the "default" profile is active.`
         )
       }
 
@@ -383,10 +374,10 @@ const App: React.FC = () => {
 
   const handleTest6 = async () => {
     try {
-      if (!test6FriendIdentity) {
+      if (!friendIdentity) {
         throw new Error('Friend’s identity key is not available.')
       }
-      const signature = await signForFriend(test6Message, test6FriendIdentity)
+      const signature = await signForFriend(test6Message, friendIdentity)
       const { publicKey: signerIdentity } = await walletClientInstance.getPublicKey({ identityKey: true })
       setResults((prev: { [key: string]: string }) => ({
         ...prev,
@@ -394,7 +385,7 @@ const App: React.FC = () => {
       }))
       setTest7Signature(signature)
       setTest7Message(test6Message)
-      setTest7FriendIdentity(signerIdentity)
+      setDefaultIdentity(signerIdentity)
       markTestCompleted('test6')
     } catch (error) {
       setResults((prev: { [key: string]: string }) => ({
@@ -407,7 +398,7 @@ const App: React.FC = () => {
   const handleTest7 = async () => {
     try {
       console.log('handleTest7: Starting verification from friend...')
-      if (!test7FriendIdentity) {
+      if (!defaultIdentity) {
         throw new Error('Friend’s identity key is not available.')
       }
       if (!test7Signature) {
@@ -419,11 +410,8 @@ const App: React.FC = () => {
       // Ensure you also update index.tsx and handleTest3 in this file to use switchProfile.
       // Partial implementation will break the app.
       setShowFriendModal(true)
-      const { publicKey: currentIdentity } = await walletClientInstance.getPublicKey({
-        identityKey: true
-      })
       const friendIdentityFromSwitch = await switchProfile(
-        currentIdentity,
+        defaultIdentity,
         'friend',
         60000
       )
@@ -437,7 +425,7 @@ const App: React.FC = () => {
       const isValid = await verifyFromFriend(
         test7Message,
         test7Signature,
-        test7FriendIdentity
+        defaultIdentity
       )
 
       // TODO: Extra Credit - Switch back to default profile:
@@ -446,7 +434,7 @@ const App: React.FC = () => {
       // Partial implementation will break the app.
       setShowDefaultModal(true)
       await switchProfile(
-        friendIdentityFromSwitch,
+        friendIdentity,
         'default',
         60000
       )
@@ -496,7 +484,7 @@ const App: React.FC = () => {
         })
       console.log('Current identity before Test 9:', currentIdentityBeforeTest)
 
-      if (!test9VerifierIdentity) {
+      if (!friendIdentity) {
         throw new Error('Verifier’s identity key is not available.')
       }
 
@@ -507,7 +495,7 @@ const App: React.FC = () => {
       const result = await proveCertificate(
         null,
         fieldsToReveal,
-        test9VerifierIdentity
+        friendIdentity
       )
       setDecodedCertificateFields(result.decodedCertificateFields || [])
       setResults((prev: { [key: string]: string }) => ({
@@ -738,8 +726,8 @@ const App: React.FC = () => {
         />
         <input
           type="text"
-          value={test2FriendIdentity}
-          onChange={e => setTest2FriendIdentity(e.target.value)}
+          value={friendIdentity}
+          onChange={e => setFriendIdentity(e.target.value)}
           placeholder="Friend’s identity key"
           style={{ marginRight: '10px' }}
         />
@@ -769,8 +757,8 @@ const App: React.FC = () => {
         />
         <input
           type="text"
-          value={test3FriendIdentity}
-          onChange={e => setTest3FriendIdentity(e.target.value)}
+          value={defaultIdentity}
+          onChange={e => setDefaultIdentity(e.target.value)}
           placeholder="Friend’s identity key"
           style={{ marginRight: '10px' }}
         />
@@ -852,8 +840,8 @@ const App: React.FC = () => {
         />
         <input
           type="text"
-          value={test6FriendIdentity}
-          onChange={e => setTest6FriendIdentity(e.target.value)}
+          value={friendIdentity}
+          onChange={e => setFriendIdentity(e.target.value)}
           placeholder="Friend’s identity key"
           style={{ marginRight: '10px' }}
         />
@@ -890,8 +878,8 @@ const App: React.FC = () => {
         />
         <input
           type="text"
-          value={test7FriendIdentity}
-          onChange={e => setTest7FriendIdentity(e.target.value)}
+          value={defaultIdentity}
+          onChange={e => setDefaultIdentity(e.target.value)}
           placeholder="Friend’s identity key"
           style={{ marginRight: '10px' }}
         />
@@ -943,8 +931,8 @@ const App: React.FC = () => {
         />
         <input
           type="text"
-          value={test9VerifierIdentity}
-          onChange={e => setTest9VerifierIdentity(e.target.value)}
+          value={friendIdentity}
+          onChange={e => setFriendIdentity(e.target.value)}
           placeholder="Verifier’s identity key"
           style={{ marginRight: '10px' }}
         />

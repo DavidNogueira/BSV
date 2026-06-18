@@ -539,7 +539,12 @@ export async function switchProfile(
   while (Date.now() - startTime < timeoutMs) {
     await new Promise(resolve => setTimeout(resolve, 200))
     try {
-      const { publicKey } = await walletClient.getPublicKey({ identityKey: true })
+      const { publicKey } = await Promise.race([
+        walletClient.getPublicKey({ identityKey: true }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('poll timeout')), 2000)
+        )
+      ])
       if (publicKey !== initialIdentity) {
         return publicKey
       }
