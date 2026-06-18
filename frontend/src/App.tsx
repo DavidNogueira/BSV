@@ -10,6 +10,7 @@ import {
   signForFriend,
   verifyFromFriend,
   signForAnyone,
+  verifyForAnyone,
   proveCertificate,
   signTransaction,
   switchProfile,
@@ -86,6 +87,7 @@ const App: React.FC = () => {
   const [test7Message, setTest7Message] = useState('test 7')
   const [test7Signature, setTest7Signature] = useState('')
   const [test8Message, setTest8Message] = useState('test 8')
+  const [test8Signature, setTest8Signature] = useState('')
   const [test9CertFields, setTest9CertFields] = useState('email')
   const [test10Basket, setTest10Basket] = useState('signing demo')
   const [showFriendModal, setShowFriendModal] = useState(false)
@@ -102,6 +104,7 @@ const App: React.FC = () => {
     test7: false,
     test8: false,
     test9: false,
+    test8b: false,
     test10: false
   })
 
@@ -121,6 +124,7 @@ const App: React.FC = () => {
     if (!completedTests.test6) return 'test6'
     if (!completedTests.test7) return 'test7'
     if (!completedTests.test8) return 'test8'
+    if (!completedTests.test8b) return 'test8b'
     if (!completedTests.test9) return 'test9'
     if (!completedTests.test10) return 'test10'
     return null
@@ -460,6 +464,7 @@ const App: React.FC = () => {
   const handleTest8 = async () => {
     try {
       const signature = await signForAnyone(test8Message)
+      setTest8Signature(signature)
       setResults((prev: { [key: string]: string }) => ({
         ...prev,
         test8: `Signature: ${signature}`
@@ -469,6 +474,25 @@ const App: React.FC = () => {
       setResults((prev: { [key: string]: string }) => ({
         ...prev,
         test8: `Error: ${(error as Error).message}`
+      }))
+    }
+  }
+
+  const handleTest8b = async () => {
+    try {
+      if (!test8Signature) {
+        throw new Error('Signature from Test 8 is not available.')
+      }
+      const isValid = await verifyForAnyone(test8Message, test8Signature, defaultIdentity)
+      setResults((prev: { [key: string]: string }) => ({
+        ...prev,
+        test8b: `Valid: ${isValid}`
+      }))
+      markTestCompleted('test8b')
+    } catch (error) {
+      setResults((prev: { [key: string]: string }) => ({
+        ...prev,
+        test8b: `Error: ${(error as Error).message}`
       }))
     }
   }
@@ -914,6 +938,22 @@ const App: React.FC = () => {
           Sign
         </button>
         <p>Result: {results.test8 || 'Not run'}</p>
+      </div>
+
+      <div style={{ marginBottom: '20px' }}>
+        <h2>Test 8b: Verify For Anyone</h2>
+        <small>
+          Tests verifying the signature from Test 8 using the signer's identity key:
+          <br />
+        </small>
+        <button
+          onClick={handleTest8b}
+          disabled={enabledButton !== 'test8b'}
+          style={buttonStyle('test8b')}
+        >
+          Verify
+        </button>
+        <p>Result: {results.test8b || 'Not run'}</p>
       </div>
 
       <div style={{ marginBottom: '20px' }}>

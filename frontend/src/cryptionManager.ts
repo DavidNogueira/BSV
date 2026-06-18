@@ -378,7 +378,7 @@ export async function signForFriend(
   message: string,
   friendIdentity: string
 ): Promise<string> {
-  // TODO: Implement the logic to sign a message for a friend with the following requirements:
+  // DONE: Implement the logic to sign a message for a friend with the following requirements:
   // 1. Validate the friendIdentity using validatePublicKey.
   // 2. Convert the message to a UTF-8 byte array using Utils.toArray.
   // 3. Use walletClient.createSignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty friendIdentity, and the message array as data.
@@ -411,7 +411,7 @@ export async function verifyFromFriend(
   signature: string,
   friendIdentity: string
 ): Promise<boolean> {
-  // TODO: Implement the logic to verify a message signed by a friend with the following requirements:
+  // DONE: Implement the logic to verify a message signed by a friend with the following requirements:
   // 1. Validate the friendIdentity using validatePublicKey.
   // 2. Convert the message to a UTF-8 byte array using Utils.toArray.
   // 3. Convert the signature hex string to a byte array using fromHex.
@@ -448,7 +448,20 @@ export async function signForAnyone(message: string): Promise<string> {
   // 4. Parse the signature using Signature.fromDER and convert it to a hex string using toHex.
   // 5. Return the hex string.
   // 6. Handle errors by throwing them with a descriptive message.
-  throw new Error('Not implemented')
+  try {
+    const data = Utils.toArray(message, 'utf8') as number[]
+    const { signature } = await walletClient.createSignature({
+      protocolID: [0, 'cryption'],
+      keyID: KEY_ID,
+      counterparty: 'anyone',
+      data
+    })
+    if (!signature) throw new Error('Signature is undefined')
+    const signatureObj = Signature.fromDER(signature)
+    return toHex(signatureObj.toDER() as number[])
+  } catch (error) {
+    throw new Error(`signForAnyone failed: ${(error as Error).message}`)
+  }
 }
 
 /**
@@ -468,7 +481,29 @@ export async function verifyForAnyone(
   // 6. Use walletClient.verifySignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty signerIdentity, forSelf false, and the message and signature arrays.
   // 7. Return the valid property of the response.
   // 8. Handle errors by logging them and returning false.
-  throw new Error('Not implemented')
+  try {
+    validatePublicKey(signerIdentity)
+    const data = Utils.toArray(message, 'utf8') as number[]
+    const signatureArray = fromHex(signature)
+    const { publicKey } = await walletClient.getPublicKey({
+      counterparty: signerIdentity,
+      protocolID: [0, 'cryption'],
+      keyID: KEY_ID
+    })
+    validatePublicKey(publicKey)
+    const { valid } = await walletClient.verifySignature({
+      protocolID: [0, 'cryption'],
+      keyID: KEY_ID,
+      counterparty: 'anyone',
+      forSelf: true,
+      data,
+      signature: signatureArray
+    })
+    return valid
+  } catch (error) {
+    console.error('verifyForAnyone failed:', error)
+    return false
+  }
 }
 
 /**
