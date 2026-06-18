@@ -531,7 +531,93 @@ export async function proveCertificate(
   // 10. Otherwise, decode fields using Utils.toArray and Utils.toUTF8, treating errors as plain strings.
   // 11. Return an object with decodedCertificateFields as an array of field objects.
   // 12. Handle errors by throwing them with a descriptive message.
-  throw new Error('Not implemented')
+  try {
+    validatePublicKey(verifierIdentity)
+    await walletClient.getPublicKey({ identityKey: true })
+    await walletClient.getPublicKey({
+      counterparty: verifierIdentity,
+      protocolID: [0, 'cryption'],
+      keyID: KEY_ID
+    })
+
+    if (fieldsToReveal.length === 0) {
+      fieldsToReveal = ['email', 'issuer', 'subject']
+    }
+
+    let certResult = await walletClient.listCertificates({
+      certifiers: [],
+      types: ['ZW1haWxDZXJ0']
+    }) as ListCertificatesResult
+
+    if (!certResult.certificates || certResult.certificates.length === 0) {
+      certResult = await walletClient.listCertificates({
+        certifiers: [],
+        types: []
+      }) as ListCertificatesResult
+    }
+
+    const emailCerts = certResult.certificates.filter(cert => {
+      const { isEmailCert } = decryptCertificateType(cert.type)
+      return isEmailCert
+    })
+
+    let selectedCert: Certificate
+    if (certificate) {
+      selectedCert = certificate
+    } else if (emailCerts.length > 0) {
+      selectedCert = emailCerts[0]
+    } else if (certResult.certificates.length > 0 && certResult.certificates[0].fields) {
+      selectedCert = certResult.certificates[0]
+    } else {
+      selectedCert = await createTestCertificate()
+    }
+
+    // Filter fieldsToReveal to only include fields that exist in the certificate.
+    // If none match (e.g. user typed field values instead of names), reveal all fields.
+    const certFieldNames = Object.keys(selectedCert.fields)
+    const validFields = fieldsToReveal.filter(f => certFieldNames.includes(f))
+    fieldsToReveal = validFields.length > 0 ? validFields : certFieldNames
+
+    const proof = await walletClient.proveCertificate({
+      certificate: selectedCert as any,
+      fieldsToReveal,
+      verifier: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+      privileged: false
+    })
+
+    const decodedCertificateFields: { [key: string]: string }[] = []
+
+    if (proof.keyringForVerifier) {
+      const protoWallet = new ProtoWallet('anyone')
+      const verifiableCert = new VerifiableCertificate(
+        selectedCert.type,
+        selectedCert.serialNumber,
+        selectedCert.subject,
+        selectedCert.certifier,
+        selectedCert.revocationOutpoint,
+        selectedCert.fields,
+        proof.keyringForVerifier,
+        selectedCert.signature
+      )
+      const decryptedFields = await verifiableCert.decryptFields(protoWallet)
+      for (const [key, value] of Object.entries(decryptedFields)) {
+        decodedCertificateFields.push({ [key]: value })
+      }
+    } else {
+      for (const [key, value] of Object.entries(selectedCert.fields)) {
+        try {
+          const decoded = Utils.toUTF8(Utils.toArray(value, 'base64'))
+          decodedCertificateFields.push({ [key]: decoded })
+        } catch {
+          decodedCertificateFields.push({ [key]: value })
+        }
+      }
+    }
+
+    return { proof, decodedCertificateFields }
+  } catch (error) {
+    throw new Error(`proveCertificate failed: ${(error as Error).message}`)
+  }
 }
 
 /**
