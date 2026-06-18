@@ -285,7 +285,6 @@ const App: React.FC = () => {
       // Implement switchProfile in cryptionManager.ts and uncomment the code below to switch to the friend profile for decryption.
       // Ensure you also update index.tsx and handleTest7 in this file to use switchProfile.
       // Partial implementation will break the app.
-      /*
       setShowFriendModal(true)
       const { publicKey: currentIdentity } = await walletClientInstance.getPublicKey({
         identityKey: true
@@ -300,12 +299,6 @@ const App: React.FC = () => {
       await delay(2000)
       console.log('Proceeding with decryption...')
       setShowFriendModal(false)
-      */
-
-      // Placeholder: Replace with switchProfile implementation
-      throw new Error(
-        'switchProfile not implemented. Complete the switchProfile TODO in cryptionManager.ts and uncomment the code above.'
-      )
 
       // Perform decryption with friend profile
       const plaintext = await decryptFromFriend(
@@ -317,7 +310,6 @@ const App: React.FC = () => {
       // Implement switchProfile in cryptionManager.ts and uncomment the code below to switch back to the default profile.
       // Ensure you also update index.tsx and handleTest7 in this file to use switchProfile.
       // Partial implementation will break the app.
-      /*
       setShowDefaultModal(true)
       await switchProfile(
         friendIdentityFromSwitch,
@@ -329,12 +321,6 @@ const App: React.FC = () => {
       await delay(2000)
       console.log('Proceeding after switch back...')
       setShowDefaultModal(false)
-      */
-
-      // Placeholder: Replace with switchProfile implementation
-      throw new Error(
-        'switchProfile not implemented. Complete the switchProfile TODO in cryptionManager.ts and uncomment the code above.'
-      )
 
       setResults((prev: { [key: string]: string }) => ({
         ...prev,
@@ -429,7 +415,6 @@ const App: React.FC = () => {
       // Implement switchProfile in cryptionManager.ts and uncomment the code below to switch to the friend profile for verification.
       // Ensure you also update index.tsx and handleTest3 in this file to use switchProfile.
       // Partial implementation will break the app.
-      /*
       setShowFriendModal(true)
       const { publicKey: currentIdentity } = await walletClientInstance.getPublicKey({
         identityKey: true
@@ -444,12 +429,6 @@ const App: React.FC = () => {
       await delay(2000)
       console.log('Proceeding with verification...')
       setShowFriendModal(false)
-      */
-
-      // Placeholder: Replace with switchProfile implementation
-      throw new Error(
-        'switchProfile not implemented. Complete the switchProfile TODO in cryptionManager.ts and uncomment the code above.'
-      )
 
       // Perform verification with friend profile
       const isValid = await verifyFromFriend(
@@ -462,7 +441,6 @@ const App: React.FC = () => {
       // Implement switchProfile in cryptionManager.ts and uncomment the code below to switch back to the default profile.
       // Ensure you also update index.tsx and handleTest3 in this file to use switchProfile.
       // Partial implementation will break the app.
-      /*
       setShowDefaultModal(true)
       await switchProfile(
         friendIdentityFromSwitch,
@@ -474,12 +452,6 @@ const App: React.FC = () => {
       await delay(2000)
       console.log('Proceeding after switch back...')
       setShowDefaultModal(false)
-      */
-
-      // Placeholder: Replace with switchProfile implementation
-      throw new Error(
-        'switchProfile not implemented. Complete the switchProfile TODO in cryptionManager.ts and uncomment the code above.'
-      )
 
       setResults((prev: { [key: string]: string }) => ({
         ...prev,
