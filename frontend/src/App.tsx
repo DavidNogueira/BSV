@@ -262,6 +262,7 @@ const App: React.FC = () => {
         test2: `Ciphertext: ${ciphertext}, Sender: ${senderIdentity}`
       }))
       setTest3Ciphertext(ciphertext)
+      setTest3FriendIdentity(senderIdentity)
       markTestCompleted('test2')
     } catch (error) {
       setResults((prev: { [key: string]: string }) => ({
