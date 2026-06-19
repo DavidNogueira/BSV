@@ -627,17 +627,82 @@ export async function signTransaction(
   basket: string = 'signing demo'
 ): Promise<void> {
   // TODO: Implement the logic to sign a PushDrop transaction with the following requirements:
-  // 1. Create a PushDrop instance with walletClient.
+  try {
+      // 1. Create a PushDrop instance with walletClient.
+      const pushdrop = new PushDrop(walletClient)
+
   // 2. Create an initial locking script using pushdrop.lock with a sample script, protocolID [0, 'cryption'], keyID KEY_ID, counterparty 'anyone', and true.
+    const sampleFields = [Utils.toArray('Hello, BSV!', 'utf8') as number[]]
+    const lockingScript = await pushdrop.lock(
+      sampleFields,
+      [0, 'cryption'],
+      KEY_ID,
+      'anyone',
+      true
+    )
   // 3. Broadcast a transaction using walletClient.createAction with the locking script, 5 satoshis, and the basket name.
+    const tx = await walletClient.createAction({
+        outputs: [{
+            lockingScript: lockingScript.toHex(),
+            satoshis: 5,
+            outputDescription: 'PushDrop token',
+            basket
+        }],
+        description: 'PushDrop token creation'
+        })
   // 4. Extract the txid and BEEF data from the transaction.
+    if (!tx.txid || !tx.tx) throw new Error('Transaction creation failed')
+    const txid = tx.txid
+    const txBEEF = tx.tx
   // 5. Create a redeeming locking script using pushdrop.lock with a sample redeeming script.
+    const redeemFields = [Utils.toArray('Redeeming token', 'utf8') as number[]]
+    const redeemLockingScript = await pushdrop.lock(
+      redeemFields,
+      [0, 'cryption'],
+      KEY_ID,
+      'anyone',
+      true
+    )
   // 6. Create an unsigned transaction using walletClient.createAction with the BEEF data, input outpoint, and redeeming locking script.
+    const unsignedTx = await walletClient.createAction({
+      inputBEEF: txBEEF,
+      inputs: [{
+        outpoint: `${txid}.0`,
+        inputDescription: 'PushDrop token redemption input',
+        unlockingScriptLength: 108
+      }],
+      outputs: [{
+        lockingScript: redeemLockingScript.toHex(),
+        satoshis: 4,
+        outputDescription: 'Redeemed token',
+        basket
+      }],
+      description: 'PushDrop token redemption',
+      options: { signAndProcess: false }
+    })
+    const signable = unsignedTx.signableTransaction
+    if (!signable) throw new Error('Unsigned transaction creation failed')
   // 7. Create an unlocker using pushdrop.unlock and sign the transaction.
+
+    const unlocker = pushdrop.unlock([0, 'cryption'], KEY_ID, 'anyone', 'all', false)
+    const unlockingScript = await unlocker.sign(
+      Transaction.fromBEEF(signable.tx as number[]),
+      0
+    )
   // 8. Submit the signed transaction using walletClient.signAction.
+    await walletClient.signAction({
+      reference: signable.reference,
+      spends: {
+        0: { unlockingScript: unlockingScript.toHex() }
+      }
+    })
   // 9. Verify the basket outputs using walletClient.listOutputs.
+    const outputs = await walletClient.listOutputs({ basket })
+    console.log(`Basket outputs: ${JSON.stringify(outputs)}`)
   // 10. Handle errors by throwing them with a descriptive message.
-  throw new Error('Not implemented')
+  } catch (error) {
+    throw new Error(`signTransaction failed: ${(error as Error).message}`)
+  }
 }
 
 /**
@@ -648,31 +713,31 @@ export async function switchProfile(
   targetProfile: string,
   timeoutMs: number = 30000
 ): Promise<string> {
-  // TODO: Implement the logic to switch between Metanet client profiles for extra credit with the following requirements:
+  // DONE: Implement the logic to switch between Metanet client profiles for extra credit with the following requirements:
   // 1. Poll walletClient.getPublicKey({ identityKey: true }) every 1 second to detect a change from initialIdentity to a new identity.
   // 2. Continue polling until the identity changes or timeoutMs (default 30 seconds) is reached.
   // 3. If a new identity is detected, return the new identity’s public key.
   // 4. If the timeout is reached, throw an error with a descriptive message indicating the switch to targetProfile failed.
   // 5. Optionally, explore triggering a profile switch programmatically via Metanet client APIs (if supported) to automate the process.
-  // 6. Handle errors by throwing them with a descriptive message.
   // Note: This function replaces the waitForWalletSwitch logic in index.tsx and App.tsx, enabling profile switching for Tests 3 and 7 within cryptionManager.ts.
   const startTime = Date.now()
   while (Date.now() - startTime < timeoutMs) {
-    await new Promise(resolve => setTimeout(resolve, 200))
-    try {
-      const { publicKey } = await Promise.race([
-        walletClient.getPublicKey({ identityKey: true }),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('poll timeout')), 2000)
-        )
-      ])
-      if (publicKey !== initialIdentity) {
-        return publicKey
-      }
+      await new Promise(resolve => setTimeout(resolve, 200))
+      try {
+          const { publicKey } = await Promise.race([
+              walletClient.getPublicKey({ identityKey: true }),
+              new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error('poll timeout')), 2000)
+            )
+        ])
+        if (publicKey !== initialIdentity) {
+            return publicKey
+        }
     } catch {
-      // wallet may be temporarily unavailable during profile switch, keep polling
+        // wallet may be temporarily unavailable during profile switch, keep polling
     }
-  }
+}
+// 6. Handle errors by throwing them with a descriptive message.
   throw new Error(`switchProfile failed: Profile switch to "${targetProfile}" timed out after ${timeoutMs}ms`)
 }
 
