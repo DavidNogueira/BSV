@@ -188,22 +188,22 @@ const decryptCertificateType = (
  */
 export async function encryptForSelf(message: string): Promise<string> {
   // DONE: Implement the logic to encrypt a message for yourself with the following requirements:
-  // 1. Convert the message to a UTF-8 byte array using Utils.toArray.
-  // 2. Use walletClient.encrypt with protocolID [0, 'cryption'], keyID KEY_ID, counterparty 'self', and the message array as plaintext.
-  // 3. Check if the ciphertext is defined; if not, throw an error.
-  // 4. Convert the ciphertext to a hex string using toHex.
-  // 5. Return the hex string.
-  // 6. Handle errors by throwing them with a descriptive message.
   try {
-    const plaintext = Utils.toArray(message, 'utf8') as number[]
-    const { ciphertext } = await walletClient.encrypt({
-      protocolID: [0, 'cryption'],
-      keyID: KEY_ID,
-      counterparty: 'self',
-      plaintext
-    })
-    if (!ciphertext) throw new Error('Ciphertext is undefined')
-    return toHex(ciphertext)
+      // 1. Convert the message to a UTF-8 byte array using Utils.toArray.
+      const plaintext = Utils.toArray(message, 'utf8') as number[]
+      // 2. Use walletClient.encrypt with protocolID [0, 'cryption'], keyID KEY_ID, counterparty 'self', and the message array as plaintext.
+      const { ciphertext } = await walletClient.encrypt({
+          protocolID: [0, 'cryption'],
+          keyID: KEY_ID,
+          counterparty: 'self',
+          plaintext
+        })
+        // 3. Check if the ciphertext is defined; if not, throw an error.
+        if (!ciphertext) throw new Error('Ciphertext is undefined')
+            // 4. Convert the ciphertext to a hex string using toHex.
+        // 5. Return the hex string.
+        return toHex(ciphertext)
+        // 6. Handle errors by throwing them with a descriptive message.
   } catch (error) {
     throw new Error(`encryptForSelf failed: ${(error as Error).message}`)
   }
@@ -214,22 +214,22 @@ export async function encryptForSelf(message: string): Promise<string> {
  */
 export async function decryptForSelf(ciphertext: string): Promise<string> {
   // DONE: Implement the logic to decrypt a message for yourself with the following requirements:
-  // 1. Convert the ciphertext hex string to a byte array using fromHex.
-  // 2. Use walletClient.decrypt with protocolID [0, 'cryption'], keyID KEY_ID, counterparty 'self', and the ciphertext array.
-  // 3. Check if the plaintext is defined; if not, throw an error.
-  // 4. Convert the plaintext byte array to a UTF-8 string using Utils.toUTF8.
-  // 5. Return the plaintext string.
-  // 6. Handle errors by throwing them with a descriptive message.
   try {
-    const ciphertextArray = fromHex(ciphertext)
-    const { plaintext } = await walletClient.decrypt({
-      protocolID: [0, 'cryption'],
-      keyID: KEY_ID,
-      counterparty: 'self',
-      ciphertext: ciphertextArray
-    })
-    if (!plaintext) throw new Error('Plaintext is undefined')
-    return Utils.toUTF8(plaintext)
+      // 1. Convert the ciphertext hex string to a byte array using fromHex.
+      const ciphertextArray = fromHex(ciphertext)
+      // 2. Use walletClient.decrypt with protocolID [0, 'cryption'], keyID KEY_ID, counterparty 'self', and the ciphertext array.
+      const { plaintext } = await walletClient.decrypt({
+          protocolID: [0, 'cryption'],
+          keyID: KEY_ID,
+          counterparty: 'self',
+          ciphertext: ciphertextArray
+        })
+        // 3. Check if the plaintext is defined; if not, throw an error.
+        if (!plaintext) throw new Error('Plaintext is undefined')
+            // 4. Convert the plaintext byte array to a UTF-8 string using Utils.toUTF8.
+            // 5. Return the plaintext string.
+            return Utils.toUTF8(plaintext)
+        // 6. Handle errors by throwing them with a descriptive message.
   } catch (error) {
     throw new Error(`decryptForSelf failed: ${(error as Error).message}`)
   }
@@ -243,28 +243,28 @@ export async function encryptForFriend(
   friendIdentity: string
 ): Promise<{ ciphertext: string; senderIdentity: string }> {
   // DONE: Implement the logic to encrypt a message for a friend with the following requirements:
-  // 1. Validate the friendIdentity using validatePublicKey.
-  // 2. Convert the message to a UTF-8 byte array using Utils.toArray.
-  // 3. Use walletClient.encrypt with protocolID [0, 'cryption'], keyID KEY_ID, counterparty friendIdentity, and the message array as plaintext.
-  // 4. Check if the ciphertext is defined; if not, throw an error.
-  // 5. Convert the ciphertext to a hex string using toHex.
-  // 6. Fetch the sender's public key using walletClient.getPublicKey with identityKey true.
-  // 7. Return an object with the ciphertext and senderIdentity.
-  // 8. Handle errors by throwing them with a descriptive message.
   try {
-    validatePublicKey(friendIdentity)
-    const plaintext = Utils.toArray(message, 'utf8') as number[]
-    const { ciphertext } = await walletClient.encrypt({
-      protocolID: [0, 'cryption'],
-      keyID: KEY_ID,
-      counterparty: friendIdentity,
-      plaintext
+      // 1. Validate the friendIdentity using validatePublicKey.
+      validatePublicKey(friendIdentity)
+      // 2. Convert the message to a UTF-8 byte array using Utils.toArray.
+      const plaintext = Utils.toArray(message, 'utf8') as number[]
+      // 3. Use walletClient.encrypt with protocolID [0, 'cryption'], keyID KEY_ID, counterparty friendIdentity, and the message array as plaintext.
+      const { ciphertext } = await walletClient.encrypt({
+          protocolID: [0, 'cryption'],
+          keyID: KEY_ID,
+          counterparty: friendIdentity,
+          plaintext
+        })
+        // 4. Check if the ciphertext is defined; if not, throw an error.
+        if (!ciphertext) throw new Error('Ciphertext is undefined')
+            // 6. Fetch the sender's public key using walletClient.getPublicKey with identityKey true.
+            const { publicKey: senderIdentity } = await walletClient.getPublicKey({
+        identityKey: true
     })
-    if (!ciphertext) throw new Error('Ciphertext is undefined')
-    const { publicKey: senderIdentity } = await walletClient.getPublicKey({
-      identityKey: true
-    })
+    // 5. Convert the ciphertext to a hex string using toHex.
+    // 7. Return an object with the ciphertext and senderIdentity.
     return { ciphertext: toHex(ciphertext), senderIdentity }
+    // 8. Handle errors by throwing them with a descriptive message.
   } catch (error) {
     throw new Error(`encryptForFriend failed: ${(error as Error).message}`)
   }
@@ -278,35 +278,35 @@ export async function decryptFromFriend(
   friendIdentity: string
 ): Promise<string> {
   // DONE: Implement the logic to decrypt a message from a friend with the following requirements:
-  // 1. Validate the friendIdentity using validatePublicKey.
-  // 2. Convert the ciphertext hex string to a byte array using fromHex.
-  // 3. Use walletClient.decrypt with protocolID [0, 'cryption'], keyID KEY_ID, counterparty friendIdentity, and the ciphertext array.
-  // 4. Set a 10-second timeout using Promise.race with a timeoutPromise.
-  // 5. Check if the plaintext is defined; if not, throw an error.
-  // 6. Convert the plaintext byte array to a UTF-8 string using Utils.toUTF8.
-  // 7. Return the plaintext string.
-  // 8. Handle errors by throwing them with a descriptive message.
   try {
-    validatePublicKey(friendIdentity)
-    const ciphertextArray = fromHex(ciphertext)
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(
-        () => reject(new Error('Decryption timed out after 10 seconds')),
-        10000
-      )
+      // 1. Validate the friendIdentity using validatePublicKey.
+      validatePublicKey(friendIdentity)
+      // 2. Convert the ciphertext hex string to a byte array using fromHex.
+      const ciphertextArray = fromHex(ciphertext)
+      // 4. Set a 10-second timeout using Promise.race with a timeoutPromise.
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(
+            () => reject(new Error('Decryption timed out after 10 seconds')),
+            10000
+        )
     )
+    // 3. Use walletClient.decrypt with protocolID [0, 'cryption'], keyID KEY_ID, counterparty friendIdentity, and the ciphertext array.
     const decryptPromise = walletClient.decrypt({
-      protocolID: [0, 'cryption'],
-      keyID: KEY_ID,
-      counterparty: friendIdentity,
-      ciphertext: ciphertextArray
+        protocolID: [0, 'cryption'],
+        keyID: KEY_ID,
+        counterparty: friendIdentity,
+        ciphertext: ciphertextArray
     })
     const { plaintext } = await Promise.race([decryptPromise, timeoutPromise])
+    // 5. Check if the plaintext is defined; if not, throw an error.
     if (!plaintext) throw new Error('Plaintext is undefined')
-    return Utils.toUTF8(plaintext)
-  } catch (error) {
+        // 6. Convert the plaintext byte array to a UTF-8 string using Utils.toUTF8.
+        // 7. Return the plaintext string.
+        return Utils.toUTF8(plaintext)
+    // 8. Handle errors by throwing them with a descriptive message.
+} catch (error) {
     throw new Error(`decryptFromFriend failed: ${(error as Error).message}`)
-  }
+}
 }
 
 /**
@@ -314,23 +314,23 @@ export async function decryptFromFriend(
  */
 export async function signForSelf(message: string): Promise<string> {
   // DONE: Implement the logic to sign a message for yourself with the following requirements:
-  // 1. Convert the message to a UTF-8 byte array using Utils.toArray.
-  // 2. Use walletClient.createSignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty 'self', and the message array as data.
-  // 3. Check if the signature is defined; if not, throw an error.
-  // 4. Parse the signature using Signature.fromDER and convert it to a hex string using toHex.
-  // 5. Return the hex string.
-  // 6. Handle errors by throwing them with a descriptive message.
   try {
-    const data = Utils.toArray(message, 'utf8') as number[]
-    const { signature } = await walletClient.createSignature({
-      protocolID: [0, 'cryption'],
-      keyID: KEY_ID,
-      counterparty: 'self',
-      data
-    })
-    if (!signature) throw new Error('Signature is undefined')
-    const signatureObj = Signature.fromDER(signature)
-    return toHex(signatureObj.toDER() as number[])
+      // 1. Convert the message to a UTF-8 byte array using Utils.toArray.
+      const data = Utils.toArray(message, 'utf8') as number[]
+      // 2. Use walletClient.createSignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty 'self', and the message array as data.
+      const { signature } = await walletClient.createSignature({
+          protocolID: [0, 'cryption'],
+          keyID: KEY_ID,
+          counterparty: 'self',
+          data
+        })
+        // 3. Check if the signature is defined; if not, throw an error.
+        if (!signature) throw new Error('Signature is undefined')
+            const signatureObj = Signature.fromDER(signature)
+        // 4. Parse the signature using Signature.fromDER and convert it to a hex string using toHex.
+        // 5. Return the hex string.
+        return toHex(signatureObj.toDER() as number[])
+        // 6. Handle errors by throwing them with a descriptive message.
   } catch (error) {
     throw new Error(`signForSelf failed: ${(error as Error).message}`)
   }
@@ -344,27 +344,27 @@ export async function verifyForSelf(
   signature: string
 ): Promise<boolean> {
   // DONE: Implement the logic to verify a self-signed message with the following requirements:
-  // 1. Fetch the public key using walletClient.getPublicKey with identityKey true.
-  // 2. Validate the public key using validatePublicKey.
-  // 3. Convert the message to a UTF-8 byte array using Utils.toArray.
-  // 4. Convert the signature hex string to a byte array using fromHex.
-  // 5. Use walletClient.verifySignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty 'self', forSelf true, and the message and signature arrays.
-  // 6. Return the valid property of the response.
-  // 7. Handle errors by logging them and returning false.
   try {
-    const { publicKey } = await walletClient.getPublicKey({ identityKey: true })
-    validatePublicKey(publicKey)
-    const data = Utils.toArray(message, 'utf8') as number[]
-    const signatureArray = fromHex(signature)
-    const { valid } = await walletClient.verifySignature({
-      protocolID: [0, 'cryption'],
-      keyID: KEY_ID,
-      counterparty: 'self',
-      forSelf: true,
-      data,
-      signature: signatureArray
-    })
-    return valid
+      // 1. Fetch the public key using walletClient.getPublicKey with identityKey true.
+      const { publicKey } = await walletClient.getPublicKey({ identityKey: true })
+      // 2. Validate the public key using validatePublicKey.
+      validatePublicKey(publicKey)
+      // 3. Convert the message to a UTF-8 byte array using Utils.toArray.
+      const data = Utils.toArray(message, 'utf8') as number[]
+      // 4. Convert the signature hex string to a byte array using fromHex.
+      const signatureArray = fromHex(signature)
+      // 5. Use walletClient.verifySignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty 'self', forSelf true, and the message and signature arrays.
+      const { valid } = await walletClient.verifySignature({
+          protocolID: [0, 'cryption'],
+          keyID: KEY_ID,
+          counterparty: 'self',
+          forSelf: true,
+          data,
+          signature: signatureArray
+        })
+        // 6. Return the valid property of the response.
+        return valid
+        // 7. Handle errors by logging them and returning false.
   } catch (error) {
     console.error('verifyForSelf failed:', error)
     return false
@@ -379,25 +379,25 @@ export async function signForFriend(
   friendIdentity: string
 ): Promise<string> {
   // DONE: Implement the logic to sign a message for a friend with the following requirements:
-  // 1. Validate the friendIdentity using validatePublicKey.
-  // 2. Convert the message to a UTF-8 byte array using Utils.toArray.
-  // 3. Use walletClient.createSignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty friendIdentity, and the message array as data.
-  // 4. Check if the signature is defined; if not, throw an error.
-  // 5. Parse the signature using Signature.fromDER and convert it to a hex string using toHex.
-  // 6. Return the hex string.
-  // 7. Handle errors by throwing them with a descriptive message.
   try {
-    validatePublicKey(friendIdentity)
-    const data = Utils.toArray(message, 'utf8') as number[]
-    const { signature } = await walletClient.createSignature({
-      protocolID: [0, 'cryption'],
-      keyID: KEY_ID,
-      counterparty: friendIdentity,
-      data
-    })
-    if (!signature) throw new Error('Signature is undefined')
-    const signatureObj = Signature.fromDER(signature)
-    return toHex(signatureObj.toDER() as number[])
+      // 1. Validate the friendIdentity using validatePublicKey.
+      validatePublicKey(friendIdentity)
+      // 2. Convert the message to a UTF-8 byte array using Utils.toArray.
+      const data = Utils.toArray(message, 'utf8') as number[]
+      // 3. Use walletClient.createSignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty friendIdentity, and the message array as data.
+      const { signature } = await walletClient.createSignature({
+          protocolID: [0, 'cryption'],
+          keyID: KEY_ID,
+          counterparty: friendIdentity,
+          data
+        })
+        // 4. Check if the signature is defined; if not, throw an error.
+        if (!signature) throw new Error('Signature is undefined')
+            const signatureObj = Signature.fromDER(signature)
+        // 5. Parse the signature using Signature.fromDER and convert it to a hex string using toHex.
+        // 6. Return the hex string.
+        return toHex(signatureObj.toDER() as number[])
+        // 7. Handle errors by throwing them with a descriptive message.
   } catch (error) {
     throw new Error(`signForFriend failed: ${(error as Error).message}`)
   }
@@ -412,25 +412,25 @@ export async function verifyFromFriend(
   friendIdentity: string
 ): Promise<boolean> {
   // DONE: Implement the logic to verify a message signed by a friend with the following requirements:
-  // 1. Validate the friendIdentity using validatePublicKey.
-  // 2. Convert the message to a UTF-8 byte array using Utils.toArray.
-  // 3. Convert the signature hex string to a byte array using fromHex.
-  // 4. Use walletClient.verifySignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty friendIdentity, forSelf false, and the message and signature arrays.
-  // 5. Return the valid property of the response.
-  // 6. Handle errors by logging them and returning false.
   try {
-    validatePublicKey(friendIdentity)
-    const data = Utils.toArray(message, 'utf8') as number[]
-    const signatureArray = fromHex(signature)
-    const { valid } = await walletClient.verifySignature({
-      protocolID: [0, 'cryption'],
-      keyID: KEY_ID,
-      counterparty: friendIdentity,
-      forSelf: false,
-      data,
-      signature: signatureArray
-    })
-    return valid
+      // 1. Validate the friendIdentity using validatePublicKey.
+      validatePublicKey(friendIdentity)
+      // 2. Convert the message to a UTF-8 byte array using Utils.toArray.
+      const data = Utils.toArray(message, 'utf8') as number[]
+      // 3. Convert the signature hex string to a byte array using fromHex.
+      const signatureArray = fromHex(signature)
+      // 4. Use walletClient.verifySignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty friendIdentity, forSelf false, and the message and signature arrays.
+      const { valid } = await walletClient.verifySignature({
+          protocolID: [0, 'cryption'],
+          keyID: KEY_ID,
+          counterparty: friendIdentity,
+          forSelf: false,
+          data,
+          signature: signatureArray
+        })
+        // 5. Return the valid property of the response.
+        return valid
+        // 6. Handle errors by logging them and returning false.
   } catch (error) {
     console.error('verifyFromFriend failed:', error)
     return false
@@ -442,23 +442,23 @@ export async function verifyFromFriend(
  */
 export async function signForAnyone(message: string): Promise<string> {
   // TODO: Implement the logic to sign a message for anyone with the following requirements:
-  // 1. Convert the message to a UTF-8 byte array using Utils.toArray.
-  // 2. Use walletClient.createSignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty 'anyone', and the message array as data.
-  // 3. Check if the signature is defined; if not, throw an error.
-  // 4. Parse the signature using Signature.fromDER and convert it to a hex string using toHex.
-  // 5. Return the hex string.
-  // 6. Handle errors by throwing them with a descriptive message.
   try {
-    const data = Utils.toArray(message, 'utf8') as number[]
-    const { signature } = await walletClient.createSignature({
-      protocolID: [0, 'cryption'],
-      keyID: KEY_ID,
-      counterparty: 'anyone',
-      data
-    })
-    if (!signature) throw new Error('Signature is undefined')
-    const signatureObj = Signature.fromDER(signature)
-    return toHex(signatureObj.toDER() as number[])
+      // 1. Convert the message to a UTF-8 byte array using Utils.toArray.
+      const data = Utils.toArray(message, 'utf8') as number[]
+      // 2. Use walletClient.createSignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty 'anyone', and the message array as data.
+      const { signature } = await walletClient.createSignature({
+          protocolID: [0, 'cryption'],
+          keyID: KEY_ID,
+          counterparty: 'anyone',
+          data
+        })
+        // 3. Check if the signature is defined; if not, throw an error.
+        if (!signature) throw new Error('Signature is undefined')
+            // 4. Parse the signature using Signature.fromDER and convert it to a hex string using toHex.
+            const signatureObj = Signature.fromDER(signature)
+        // 5. Return the hex string.
+        return toHex(signatureObj.toDER() as number[])
+        // 6. Handle errors by throwing them with a descriptive message.
   } catch (error) {
     throw new Error(`signForAnyone failed: ${(error as Error).message}`)
   }
@@ -473,33 +473,33 @@ export async function verifyForAnyone(
   signerIdentity: string
 ): Promise<boolean> {
   // TODO: Implement the logic to verify a message signed for anyone with the following requirements:
-  // 1. Validate the signerIdentity using validatePublicKey.
-  // 2. Convert the message to a UTF-8 byte array using Utils.toArray.
-  // 3. Convert the signature hex string to a byte array using fromHex.
-  // 4. Fetch the signer’s public key using walletClient.getPublicKey with counterparty signerIdentity, protocolID [0, 'cryption'], and keyID KEY  keyID KEY_ID.
-  // 5. Validate the fetched public key using validatePublicKey.
-  // 6. Use walletClient.verifySignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty signerIdentity, forSelf false, and the message and signature arrays.
-  // 7. Return the valid property of the response.
-  // 8. Handle errors by logging them and returning false.
   try {
-    validatePublicKey(signerIdentity)
-    const data = Utils.toArray(message, 'utf8') as number[]
-    const signatureArray = fromHex(signature)
-    const { publicKey } = await walletClient.getPublicKey({
-      counterparty: signerIdentity,
-      protocolID: [0, 'cryption'],
-      keyID: KEY_ID
-    })
-    validatePublicKey(publicKey)
-    const { valid } = await walletClient.verifySignature({
-      protocolID: [0, 'cryption'],
-      keyID: KEY_ID,
-      counterparty: 'anyone',
-      forSelf: true,
-      data,
-      signature: signatureArray
-    })
-    return valid
+      // 1. Validate the signerIdentity using validatePublicKey.
+      validatePublicKey(signerIdentity)
+      // 2. Convert the message to a UTF-8 byte array using Utils.toArray.
+      const data = Utils.toArray(message, 'utf8') as number[]
+      // 3. Convert the signature hex string to a byte array using fromHex.
+      const signatureArray = fromHex(signature)
+      // 4. Fetch the signer’s public key using walletClient.getPublicKey with counterparty signerIdentity, protocolID [0, 'cryption'], and keyID KEY  keyID KEY_ID.
+      const { publicKey } = await walletClient.getPublicKey({
+          counterparty: signerIdentity,
+          protocolID: [0, 'cryption'],
+          keyID: KEY_ID
+        })
+        // 5. Validate the fetched public key using validatePublicKey.
+        validatePublicKey(publicKey)
+        // 6. Use walletClient.verifySignature with protocolID [0, 'cryption'], keyID KEY_ID, counterparty signerIdentity, forSelf false, and the message and signature arrays.
+        const { valid } = await walletClient.verifySignature({
+            protocolID: [0, 'cryption'],
+            keyID: KEY_ID,
+            counterparty: 'anyone',
+            forSelf: true,
+            data,
+            signature: signatureArray
+        })
+        // 7. Return the valid property of the response.
+        return valid
+        // 8. Handle errors by logging them and returning false.
   } catch (error) {
     console.error('verifyForAnyone failed:', error)
     return false
@@ -518,103 +518,103 @@ export async function proveCertificate(
   proof?: any
   decodedCertificateFields?: { [key: string]: string }[]
 }> {
-  // TODO: Implement the logic to prove a certificate with the following requirements:
-  // 1. Validate the verifierIdentity using validatePublicKey.
-  // 2. Fetch the current identity using walletClient.getPublicKey with identityKey true.
-  // 3. Fetch the verifier’s public key using walletClient.getPublicKey with counterparty verifierIdentity, protocolID [0, 'cryption'], and keyID KEY_ID.
-  // 4. Set default fields to ['email', 'issuer', 'subject'] if fieldsToReveal is empty.
-  // 5. Fetch certificates with type 'ZW1haWxDZXJ0' using walletClient.listCertificates; if none found, fetch all certificates.
-  // 6. Process certificate types using decryptCertificateType to identify emailCert certificates.
-  // 7. Select a certificate: use the provided certificate, or the first emailCert certificate, or the first certificate with fields, or create a test certificate using createTestCertificate.
-  // 8. Use walletClient.proveCertificate with the selected certificate, fieldsToReveal, verifier '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', and privileged false.
-  // 9. If keyringForVerifier is available, create a VerifiableCertificate and decrypt fields using decryptFields with a ProtoWallet('anyone').
-  // 10. Otherwise, decode fields using Utils.toArray and Utils.toUTF8, treating errors as plain strings.
-  // 11. Return an object with decodedCertificateFields as an array of field objects.
-  // 12. Handle errors by throwing them with a descriptive message.
+  // DONE: Implement the logic to prove a certificate with the following requirements:
   try {
-    validatePublicKey(verifierIdentity)
-    await walletClient.getPublicKey({ identityKey: true })
-    await walletClient.getPublicKey({
-      counterparty: verifierIdentity,
-      protocolID: [0, 'cryption'],
-      keyID: KEY_ID
-    })
-
-    if (fieldsToReveal.length === 0) {
-      fieldsToReveal = ['email', 'issuer', 'subject']
-    }
-
-    let certResult = await walletClient.listCertificates({
-      certifiers: [],
-      types: ['ZW1haWxDZXJ0']
-    }) as ListCertificatesResult
-
-    if (!certResult.certificates || certResult.certificates.length === 0) {
-      certResult = await walletClient.listCertificates({
-        certifiers: [],
-        types: []
-      }) as ListCertificatesResult
-    }
-
-    const emailCerts = certResult.certificates.filter(cert => {
-      const { isEmailCert } = decryptCertificateType(cert.type)
-      return isEmailCert
-    })
-
-    let selectedCert: Certificate
-    if (certificate) {
-      selectedCert = certificate
-    } else if (emailCerts.length > 0) {
-      selectedCert = emailCerts[0]
-    } else if (certResult.certificates.length > 0 && certResult.certificates[0].fields) {
-      selectedCert = certResult.certificates[0]
-    } else {
-      selectedCert = await createTestCertificate()
-    }
-
-    // Filter fieldsToReveal to only include fields that exist in the certificate.
-    // If none match (e.g. user typed field values instead of names), reveal all fields.
-    const certFieldNames = Object.keys(selectedCert.fields)
-    const validFields = fieldsToReveal.filter(f => certFieldNames.includes(f))
-    fieldsToReveal = validFields.length > 0 ? validFields : certFieldNames
-
-    const proof = await walletClient.proveCertificate({
-      certificate: selectedCert as any,
-      fieldsToReveal,
-      verifier: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
-      privileged: false
-    })
-
-    const decodedCertificateFields: { [key: string]: string }[] = []
-
-    if (proof.keyringForVerifier) {
-      const protoWallet = new ProtoWallet('anyone')
-      const verifiableCert = new VerifiableCertificate(
-        selectedCert.type,
-        selectedCert.serialNumber,
-        selectedCert.subject,
-        selectedCert.certifier,
-        selectedCert.revocationOutpoint,
-        selectedCert.fields,
-        proof.keyringForVerifier,
-        selectedCert.signature
-      )
-      const decryptedFields = await verifiableCert.decryptFields(protoWallet)
-      for (const [key, value] of Object.entries(decryptedFields)) {
-        decodedCertificateFields.push({ [key]: value })
-      }
-    } else {
-      for (const [key, value] of Object.entries(selectedCert.fields)) {
-        try {
-          const decoded = Utils.toUTF8(Utils.toArray(value, 'base64'))
-          decodedCertificateFields.push({ [key]: decoded })
-        } catch {
-          decodedCertificateFields.push({ [key]: value })
+      // 1. Validate the verifierIdentity using validatePublicKey.
+      validatePublicKey(verifierIdentity)
+      // 2. Fetch the current identity using walletClient.getPublicKey with identityKey true.
+      await walletClient.getPublicKey({ identityKey: true })
+      // 3. Fetch the verifier’s public key using walletClient.getPublicKey with counterparty verifierIdentity, protocolID [0, 'cryption'], and keyID KEY_ID.
+      await walletClient.getPublicKey({
+          counterparty: verifierIdentity,
+          protocolID: [0, 'cryption'],
+          keyID: KEY_ID
+        })
+        
+        // 4. Set default fields to ['email', 'issuer', 'subject'] if fieldsToReveal is empty.
+        if (fieldsToReveal.length === 0) {
+            fieldsToReveal = ['email', 'issuer', 'subject']
         }
-      }
-    }
-
-    return { proof, decodedCertificateFields }
+        
+        // 5. Fetch certificates with type 'ZW1haWxDZXJ0' using walletClient.listCertificates; if none found, fetch all certificates.
+        let certResult = await walletClient.listCertificates({
+            certifiers: [],
+            types: ['ZW1haWxDZXJ0']
+        }) as ListCertificatesResult
+        
+        if (!certResult.certificates || certResult.certificates.length === 0) {
+            certResult = await walletClient.listCertificates({
+                certifiers: [],
+                types: []
+            }) as ListCertificatesResult
+        }
+        
+        // 6. Process certificate types using decryptCertificateType to identify emailCert certificates.
+        const emailCerts = certResult.certificates.filter(cert => {
+            const { isEmailCert } = decryptCertificateType(cert.type)
+            return isEmailCert
+        })
+        
+        // 7. Select a certificate: use the provided certificate, or the first emailCert certificate, or the first certificate with fields, or create a test certificate using createTestCertificate.
+        let selectedCert: Certificate
+        if (certificate) {
+            selectedCert = certificate
+        } else if (emailCerts.length > 0) {
+            selectedCert = emailCerts[0]
+        } else if (certResult.certificates.length > 0 && certResult.certificates[0].fields) {
+            selectedCert = certResult.certificates[0]
+        } else {
+            selectedCert = await createTestCertificate()
+        }
+        
+        // Filter fieldsToReveal to only include fields that exist in the certificate.
+        // If none match (e.g. user typed field values instead of names), reveal all fields.
+        const certFieldNames = Object.keys(selectedCert.fields)
+        const validFields = fieldsToReveal.filter(f => certFieldNames.includes(f))
+        fieldsToReveal = validFields.length > 0 ? validFields : certFieldNames
+        
+        // 8. Use walletClient.proveCertificate with the selected certificate, fieldsToReveal, verifier '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', and privileged false.
+        const proof = await walletClient.proveCertificate({
+            certificate: selectedCert as any,
+            fieldsToReveal,
+            verifier: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+            privileged: false
+        })
+        
+        const decodedCertificateFields: { [key: string]: string }[] = []
+        
+        // 9. If keyringForVerifier is available, create a VerifiableCertificate and decrypt fields using decryptFields with a ProtoWallet('anyone').
+        if (proof.keyringForVerifier) {
+            const protoWallet = new ProtoWallet('anyone')
+            const verifiableCert = new VerifiableCertificate(
+                selectedCert.type,
+                selectedCert.serialNumber,
+                selectedCert.subject,
+                selectedCert.certifier,
+                selectedCert.revocationOutpoint,
+                selectedCert.fields,
+                proof.keyringForVerifier,
+                selectedCert.signature
+            )
+            const decryptedFields = await verifiableCert.decryptFields(protoWallet)
+            for (const [key, value] of Object.entries(decryptedFields)) {
+                decodedCertificateFields.push({ [key]: value })
+            }
+            // 10. Otherwise, decode fields using Utils.toArray and Utils.toUTF8, treating errors as plain strings.
+        } else {
+            for (const [key, value] of Object.entries(selectedCert.fields)) {
+                try {
+                    const decoded = Utils.toUTF8(Utils.toArray(value, 'base64'))
+                    decodedCertificateFields.push({ [key]: decoded })
+                } catch {
+                    decodedCertificateFields.push({ [key]: value })
+                }
+            }
+        }
+        
+        // 11. Return an object with decodedCertificateFields as an array of field objects.
+        return { proof, decodedCertificateFields }
+        // 12. Handle errors by throwing them with a descriptive message.
   } catch (error) {
     throw new Error(`proveCertificate failed: ${(error as Error).message}`)
   }
