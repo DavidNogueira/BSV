@@ -78,6 +78,7 @@ const App: React.FC = () => {
   const [test1Ciphertext, setTest1Ciphertext] = useState('')
   const [defaultIdentity, setDefaultIdentity] = useState('')
   const [friendIdentity, setFriendIdentity] = useState('')
+  const [test3FriendIdentity, setTest3FriendIdentity] = useState('')
   const [test2Message, setTest2Message] = useState('test 2')
   const [test3Ciphertext, setTest3Ciphertext] = useState('')
   const [test4Message, setTest4Message] = useState('test 4')
@@ -92,6 +93,13 @@ const App: React.FC = () => {
   const [test10Basket, setTest10Basket] = useState('signing demo')
   const [showFriendModal, setShowFriendModal] = useState(false)
   const [showDefaultModal, setShowDefaultModal] = useState(false)
+
+
+  const [test2FriendIdentity, setTest2FriendIdentity] = useState('')
+  const [test6FriendIdentity, setTest6FriendIdentity] = useState('')
+  const [test7FriendIdentity, setTest7FriendIdentity] = useState('')
+  const [test9VerifierIdentity, setTest9VerifierIdentity] = useState('')
+
 
   const [completedTests, setCompletedTests] = useState({
     test1Encrypt: false,
@@ -171,6 +179,12 @@ const App: React.FC = () => {
         console.log('Default profile identity key:', defaultKey)
 
         setFriendIdentity(friendKey)
+        setTest2FriendIdentity(friendKey)
+        setTest3FriendIdentity(friendKey)
+        setTest6FriendIdentity(friendKey)
+        setTest7FriendIdentity(friendKey)
+        setTest9VerifierIdentity(friendKey)
+
         setDefaultIdentity(defaultKey)
       } catch (error) {
         console.error(
@@ -244,7 +258,7 @@ const App: React.FC = () => {
       })
     }
   }
-
+  //* DONE
   const handleTest2 = async () => {
     try {
       console.log('handleTest2: Starting encryption for friend...')
@@ -284,22 +298,32 @@ const App: React.FC = () => {
       // Implement switchProfile in cryptionManager.ts and uncomment the code below to switch to the friend profile for decryption.
       // Ensure you also update index.tsx and handleTest7 in this file to use switchProfile.
       // Partial implementation will break the app.
+
       setShowFriendModal(true)
+      const { publicKey: currentIdentity } =
+        await walletClientInstance.getPublicKey({
+          identityKey: true
+        })
       const friendIdentityFromSwitch = await switchProfile(
         defaultIdentity,
         'friend',
         60000
       )
-      console.log('switchProfile to friend succeeded! New identity:', friendIdentityFromSwitch)
       console.log('Waiting 2 seconds for Metanet client to stabilize...')
       await delay(2000)
       console.log('Proceeding with decryption...')
       setShowFriendModal(false)
 
+      // Placeholder: Replace with switchProfile implementation
+      if (!friendIdentityFromSwitch) {
+        throw new Error(
+          'switchProfile not implemented. Complete the switchProfile TODO in cryptionManager.ts and uncomment the code above.'
+        )
+      }
       // Perform decryption with friend profile
       const plaintext = await decryptFromFriend(
         test3Ciphertext,
-        defaultIdentity
+        currentIdentity // Use the current identity after switching to friend profile
       )
 
       // TODO: Extra Credit - Switch back to default profile:
@@ -307,16 +331,18 @@ const App: React.FC = () => {
       // Ensure you also update index.tsx and handleTest7 in this file to use switchProfile.
       // Partial implementation will break the app.
       setShowDefaultModal(true)
-      await switchProfile(
-        friendIdentity,
-        'default',
-        60000
-      )
+      await switchProfile(friendIdentityFromSwitch, 'default', 60000)
       console.log('switchProfile to default succeeded.')
       console.log('Waiting 2 seconds for Metanet client to stabilize...')
       await delay(2000)
       console.log('Proceeding after switch back...')
       setShowDefaultModal(false)
+      // Placeholder: Replace with switchProfile implementation
+      if (!friendIdentityFromSwitch) {
+        throw new Error(
+          'switchProfile not implemented. Complete the switchProfile TODO in cryptionManager.ts and uncomment the code above.'
+        )
+      }
 
       setResults((prev: { [key: string]: string }) => ({
         ...prev,
@@ -337,13 +363,11 @@ const App: React.FC = () => {
         await walletClientInstance.getPublicKey({
           identityKey: true
         })
-      console.log('Current identity before Test 4:', currentIdentityBeforeSign)
-      if (currentIdentityBeforeSign !== defaultIdentity) {
+      if (currentIdentityBeforeSign === test3FriendIdentity) {
         throw new Error(
-          `Incorrect profile active. Expected "default" profile with identity ${defaultIdentity}, but found ${currentIdentityBeforeSign}. Please ensure the "default" profile is active.`
+          `Incorrect profile active. Expected "default" profile with identity ${currentIdentityBeforeSign}, but found ${test3FriendIdentity}. Please ensure the "default" profile is active.`
         )
       }
-
       const signature = await signForSelf(test4Message)
       setResults((prev: { [key: string]: string }) => ({
         ...prev,
@@ -413,13 +437,17 @@ const App: React.FC = () => {
       // Implement switchProfile in cryptionManager.ts and uncomment the code below to switch to the friend profile for verification.
       // Ensure you also update index.tsx and handleTest3 in this file to use switchProfile.
       // Partial implementation will break the app.
+
       setShowFriendModal(true)
+      const { publicKey: currentIdentity } =
+        await walletClientInstance.getPublicKey({
+          identityKey: true
+        })
       const friendIdentityFromSwitch = await switchProfile(
         defaultIdentity,
         'friend',
         60000
       )
-      console.log('switchProfile to friend succeeded! New identity:', friendIdentityFromSwitch)
       console.log('Waiting 2 seconds for Metanet client to stabilize...')
       await delay(2000)
       console.log('Proceeding with verification...')
@@ -429,19 +457,16 @@ const App: React.FC = () => {
       const isValid = await verifyFromFriend(
         test7Message,
         test7Signature,
-        defaultIdentity
+        currentIdentity
       )
 
       // TODO: Extra Credit - Switch back to default profile:
       // Implement switchProfile in cryptionManager.ts and uncomment the code below to switch back to the default profile.
       // Ensure you also update index.tsx and handleTest3 in this file to use switchProfile.
       // Partial implementation will break the app.
+
       setShowDefaultModal(true)
-      await switchProfile(
-        friendIdentity,
-        'default',
-        60000
-      )
+      await switchProfile(friendIdentityFromSwitch, 'default', 60000)
       console.log('switchProfile to default succeeded.')
       console.log('Waiting 2 seconds for Metanet client to stabilize...')
       await delay(2000)
@@ -519,7 +544,7 @@ const App: React.FC = () => {
       const result = await proveCertificate(
         null,
         fieldsToReveal,
-        friendIdentity
+        currentIdentityBeforeTest
       )
       setDecodedCertificateFields(result.decodedCertificateFields || [])
       setResults((prev: { [key: string]: string }) => ({
@@ -782,7 +807,7 @@ const App: React.FC = () => {
         <input
           type="text"
           value={defaultIdentity}
-          onChange={e => setDefaultIdentity(e.target.value)}
+          onChange={e => setTest3FriendIdentity(e.target.value)}
           placeholder="Friend’s identity key"
           style={{ marginRight: '10px' }}
         />
@@ -865,7 +890,7 @@ const App: React.FC = () => {
         <input
           type="text"
           value={friendIdentity}
-          onChange={e => setFriendIdentity(e.target.value)}
+          onChange={e => setTest6FriendIdentity(e.target.value)}
           placeholder="Friend’s identity key"
           style={{ marginRight: '10px' }}
         />
@@ -903,7 +928,7 @@ const App: React.FC = () => {
         <input
           type="text"
           value={defaultIdentity}
-          onChange={e => setDefaultIdentity(e.target.value)}
+          onChange={e => setTest7FriendIdentity(e.target.value)}
           placeholder="Friend’s identity key"
           style={{ marginRight: '10px' }}
         />
@@ -972,7 +997,7 @@ const App: React.FC = () => {
         <input
           type="text"
           value={friendIdentity}
-          onChange={e => setFriendIdentity(e.target.value)}
+          onChange={e => setTest9VerifierIdentity(e.target.value)}
           placeholder="Verifier’s identity key"
           style={{ marginRight: '10px' }}
         />
