@@ -1,25 +1,60 @@
-import React, { useEffect, useState } from 'react'
-let hasComponentRemount = false
+import React, { useState } from 'react'
+import { Button, Typography, Container, CircularProgress } from '@mui/material'
+import { WalletClient, AuthFetch } from '@bsv/sdk'
 
-export default function App() {
-  const [identityKey, setIdentityKey] = useState<string | null>(null)
+const App: React.FC = () => {
+  const [isLoading, setIsLoading] = useState(false)
+  const [response, setResponse] = useState<string | null>(null)
 
-  useEffect(() => {
-    //? We use a flag (hasComponentRemount) to ensure that the transaction creation function is only called once when the app starts. This prevents multiple transactions from being created if the component re-renders for any reason, which is important for debugging and ensuring that we don't create unintended transactions.
-    if (hasComponentRemount) return
-    hasComponentRemount = true
+  const handleButtonClick = async () => {
+    setIsLoading(true)
+    setResponse(null)
 
-    const init = async () => {
-      try {
-        await initializeClient()
-        const key = await getMyIdentityKey()
-        setIdentityKey(key)
-      } catch (err) {
-        console.error('Initialization error:', err)
+    try {
+      const wallet = new WalletClient()
+      const authFetch = new AuthFetch(wallet)
+
+      const res = await authFetch.fetch('http://localhost:3000/protected', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+      if (!res.ok) {
+        throw new Error(`Server responded with status ${res.status}`)
       }
-    }
-    init()
-  }, [])
 
-  return <div>Whatever code</div>
+      const text = await res.text()
+      setResponse(text)
+    } catch (err: any) {
+      setResponse(`Error: ${err.message || err}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <Container maxWidth="sm">
+      <Typography variant="h4" component="h1" gutterBottom>
+        User Authentication App
+      </Typography>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleButtonClick}
+        disabled={isLoading}
+      >
+        {isLoading ? <CircularProgress size={24} /> : 'Send Request to Backend'}
+      </Button>
+      {response && (
+        <Typography
+          variant="body1"
+          style={{ marginTop: '20px', whiteSpace: 'pre-wrap' }}
+        >
+          Response from backend: {response}
+        </Typography>
+      )}
+    </Container>
+  )
 }
+
+export default App
