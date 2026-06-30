@@ -25,8 +25,6 @@ async function main() {
     rootKeyHex
   })
 
-  
-
   // Configure the Auth middleware
   const authMiddleware = createAuthMiddleware({
     wallet: wallet,
