@@ -64,11 +64,6 @@ async function main() {
       res.status(401).json({ error: 'Unauthorized' })
     }
   })
-  app.get('/protected', (req: Request, res: Response) => {
-    const authReq = req as AuthRequest
-    if (!authReq.auth?.identityKey) return res.status(401).send('Unauthorized')
-    res.send(`Hello, ${authReq.auth.identityKey}!`)
-  })
 
   // Start the server on port 3000
   app.listen(3000, () => {
