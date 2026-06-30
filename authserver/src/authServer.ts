@@ -32,9 +32,9 @@ async function main() {
 // Hint: Add middleware to set Access-Control-Allow-* headers (Origin, Headers, Methods, Expose-Headers, Private-Network) and handle OPTIONS requests with a 200 status
   app.use((req: Request, res: Response, next: NextFunction) => {
     res.set('Access-Control-Allow-Origin', '*')
-    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+    res.set('Access-Control-Allow-Headers', '*')
     res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-    res.set('Access-Control-Expose-Headers', 'Content-Type, Authorization')
+    res.set('Access-Control-Expose-Headers', '*')
     res.set('Access-Control-Allow-Private-Network', 'true')
     if (req.method === 'OPTIONS') return res.sendStatus(200)
     next()
@@ -46,13 +46,21 @@ async function main() {
 
 // TODO: Configure a non-protected route
 // Hint: Create a GET route for '/' that sends a "Hello, world!" response
+  app.get('/', (_req: Request, res: Response) => {
+    res.send('Hello, world!')
+  })
 
 // TODO: Configure a protected route
 // Hint: Create a GET route for '/protected' that sends a greeting with req.auth.identityKey if authenticated, or a 401 "Unauthorized" response
+  app.get('/protected', (req: Request, res: Response) => {
+    const authReq = req as AuthRequest
+    if (!authReq.auth?.identityKey) return res.status(401).send('Unauthorized')
+    res.send(`Hello, ${authReq.auth.identityKey}!`)
+  })
 
 // TODO: Start the server on port 3000
 // Hint: Use app.listen() and log "Server is running on port 3000"
-app.listen(3000)
+  app.listen(3000, () => console.log('Server is running on port 3000'))
 }
 
 main()
