@@ -1,11 +1,10 @@
 {
-  "name": "Lab-L-10-Integrating-Payments-and-Fetching-Weather-Data-in-a-Blockchain-Application-frontend",
+  "name": "lab-l10-weatherAPP",
   "version": "1.0.0",
-  "description": "Lab-L-10-Integrating-Payments-and-Fetching-Weather-Data-in-a-Blockchain-Application-frontend",
+  "description": "Lab L-10: Integrating Payments and Fetching Weather Data in a Blockchain Application",
   "scripts": {
-    "start": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
+    "start": "tsc && node dist/src/weatherServer.js",
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

@@ -1,7 +1,7 @@
 {
-  "name": "lab-l9",
+  "name": "lab-l10",
   "version": "1.0.0",
-  "description": "Lab L-9: User Authentication App",
+  "description": "Lab L-10: Integrating Payments and Fetching Weather Data in a Blockchain Application",
   "private": true,
   "workspaces": [
     "frontend",
@@ -16,6 +16,6 @@
   },
   "dependencies": {
     "@bsv/lars": "^1.5.0",
-    "@bsv/sdk": "^1.5.2"
+    "@bsv/sdk": "^2.1.6"
   }
 }
