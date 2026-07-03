@@ -1,94 +1,125 @@
 import React, { useState } from 'react'
 import {
-  Button,
-  Typography,
   Container,
-  CircularProgress,
+  Typography,
+  TextField,
+  Button,
   Card,
-  CardContent
+  CardContent,
+  Stack,
+  Box
 } from '@mui/material'
-import {
-  WalletClient,
-  AuthFetch
-} from '@bsv/sdk'
 
-const PORT = 3000
-const SERVER_URL = `http://localhost:${PORT}`
+export default function App() {
+  const [message, setMessage] = useState('')
+  const [logs, setLogs] = useState<string[]>([])
+  const [status, setStatus] = useState<string | null>(null)
 
-const App: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(false)
-  const [response, setResponse] = useState<string | null>(null)
-  const [weather, setWeather] = useState<any | null>(null)
-
-  const handleWeatherRequest = async () => {
-    setIsLoading(true)
-    setResponse(null)
-
+  const handleLogEvent = async () => {
+    setStatus('Logging...')
     try {
-      const wallet = new WalletClient('json-api', 'localhost')
-      const authFetch = new AuthFetch(wallet)
-
-      const res = await authFetch.fetch(`${SERVER_URL}/weather`, {
+      const response = await fetch('http://localhost:3000/log-event', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventData: { message } })
       })
-
-      if (!res.ok) {
-        throw new Error(`Server responded with status ${res.status}`)
+      const data = await response.json()
+      if (response.ok) {
+        setStatus(`Logged with txid: ${data.txid}`)
+        setMessage('')
+      } else {
+        setStatus(`Failed: ${data.message}`)
       }
+    } catch (error) {
+      setStatus(`Error: ${String(error)}`)
+    }
+  }
 
-      const data = await res.json()
-      setWeather(data)
-      console.log('weather data:', data)
-
-    } catch (err: any) {
-      setResponse(`Error: ${err.message || err}`)
-    } finally {
-      setIsLoading(false)
+  const handleRetrieveLogs = async () => {
+    setStatus('Fetching logs...')
+    try {
+      const response = await fetch('http://localhost:3000/retrieve-logs')
+      const data = await response.json()
+      if (response.ok && Array.isArray(data.logs)) {
+        setLogs(data.logs)
+        setStatus('Logs retrieved')
+      } else {
+        setStatus('Failed to retrieve logs')
+      }
+    } catch (error) {
+      setStatus(`Error retrieving logs: ${String(error)}`)
     }
   }
 
   return (
-    <Container maxWidth="sm">
-      <Typography variant="h4" component="h1" gutterBottom>
-        Weather Request App
-      </Typography>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleWeatherRequest}
-        disabled={isLoading}
-      >
-        {isLoading ? <CircularProgress size={24} /> : 'Send Weather Request'}
-      </Button>
-
-      {response && (
-        <Typography variant="body1" style={{ marginTop: 20 }}>
-          Response from backend: {response}
+    <Container maxWidth="md" sx={{ py: 6 }}>
+      <Stack spacing={4} alignItems="center">
+        <Typography variant="h4" fontWeight="bold" align="center">
+          Lab L-12: Event Logger
         </Typography>
-      )}
-
-      {weather && (
-        <Card style={{ marginTop: 20 }}>
+        <TextField
+          fullWidth
+          label="Enter an event message"
+          variant="outlined"
+          value={message}
+          onChange={e => setMessage(e.target.value)}
+        />
+        <Stack direction="row" spacing={2}>
+          <Button variant="contained" color="primary" onClick={handleLogEvent}>
+            Log Event
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={handleRetrieveLogs}
+          >
+            Retrieve Logs
+          </Button>
+        </Stack>
+        {status && (
+          <Typography variant="body2" color="text.secondary" align="center">
+            {status}
+          </Typography>
+        )}
+        <Card
+          sx={{
+            width: '100%',
+            maxWidth: '1000px',
+            overflowX: 'auto',
+            bgcolor: 'grey.900',
+            color: 'white',
+            p: 2
+          }}
+        >
           <CardContent>
-            <Typography variant="h4">{weather.name} Weather</Typography>
-            <Typography variant="h6">
-              Temp: {weather.main.temp} °C
+            <Typography variant="h6" gutterBottom align="center">
+              Logged Events
             </Typography>
-            <Typography variant="body2">
-              High: {weather.main.temp_max} °C
-            </Typography>
-            <Typography variant="body2">
-              Low: {weather.main.temp_min} °C
-            </Typography>
-            <Typography variant="body2">
-              Humidity: {weather.main.humidity}%
-            </Typography>
+            {logs.length === 0 ? (
+              <Typography variant="body2" color="text.secondary" align="center">
+                No logs yet.
+              </Typography>
+            ) : (
+              <Box component="ul" sx={{ listStyleType: 'disc', pl: 4, m: 0 }}>
+                {logs.map((log, idx) => (
+                  <Box component="li" key={idx}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontFamily: 'monospace',
+                        whiteSpace: 'nowrap',
+                        overflowX: 'auto'
+                      }}
+                    >
+                      {log}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            )}
           </CardContent>
         </Card>
-      )}
+      </Stack>
     </Container>
   )
 }
-
-export default App
