@@ -18,7 +18,7 @@ export default function App() {
   const handleLogEvent = async () => {
     setStatus('Logging...')
     try {
-      const response = await fetch('http://localhost:3000/log-event', {
+      const response = await fetch('http://localhost:3001/log-event', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ eventData: { message } })
@@ -38,10 +38,11 @@ export default function App() {
   const handleRetrieveLogs = async () => {
     setStatus('Fetching logs...')
     try {
-      const response = await fetch('http://localhost:3000/retrieve-logs')
+      const response = await fetch('http://localhost:3001/retrieve-logs')
       const data = await response.json()
+      console.log('retrieveLogs-->', data)
       if (response.ok && Array.isArray(data.logs)) {
-        setLogs(data.logs)
+        setLogs(data.logs.reverse()) // Reverse to show the latest logs first
         setStatus('Logs retrieved')
       } else {
         setStatus('Failed to retrieve logs')
