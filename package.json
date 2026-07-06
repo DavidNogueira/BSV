@@ -1,7 +1,7 @@
 {
-  "name": "lab-l10",
+  "name": "lab-l12",
   "version": "1.0.0",
-  "description": "Lab L-10: Integrating Payments and Fetching Weather Data in a Blockchain Application",
+  "description": "Lab L-12: Event Logger",
   "private": true,
   "workspaces": [
     "frontend",
