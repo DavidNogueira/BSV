@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react'
 import CommitmentForm from './components/CommitmentForm'
 
-export default function App() {
+const App = () => {
   return (
     <div>
       <CommitmentForm />
     </div>
   )
 }
+
+export default App
