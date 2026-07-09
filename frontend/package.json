@@ -1,7 +1,7 @@
 {
-  "name": "lab-l1-frontend",
+  "name": "lab-l13",
   "version": "1.0.0",
-  "description": "Lab L-1: Creating a Transaction Frontend",
+  "description": "Lab L-13:",
   "scripts": {
     "start": "vite",
     "build": "vite build",
@@ -12,9 +12,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@bsv/auth-express-middleware": "^1.1.2",
-    "@bsv/payment-express-middleware": "^1.0.6",
-    "@bsv/sdk": "^1.4.22",
+    "@bsv/auth-express-middleware": "^2.1.0",
+    "@bsv/payment-express-middleware": "^2.1.0",
+    "@bsv/sdk": "^2.1.6",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^5.11.16",
