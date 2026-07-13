@@ -2,7 +2,7 @@ Step-by-Step Instructions
 1. Set Up Your Development Environment
 Follow the setup instructions from Lab L-1’s “Set Up Your Development Environment” section to create the project structure, configure package.json, deployment-info.json, and ensure the backend dependencies are installed. The backend structure is defined in the lab-13-14 directory.
 
- 
+
 
 Create your root package.json. 
 
