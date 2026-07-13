@@ -1,4 +1,5 @@
 import {
+  AuthFetch,
   PushDrop,
   Utils,
   WalletClient,
@@ -50,32 +51,43 @@ export async function publishCommitment({
     }
 
     // TODO 4: Upload file and get UHRP URL
-    let uploadResult
-    try {
-      uploadResult = await storageUploader.publishFile({
-        file: uploadableFile,
-        retentionPeriod: hostingMinutes
-      })
-    } catch (error) {
-      // StorageUploader.publishFile's pre-flight /quote step swallows the
-      // real per-provider error (HTTP status, body, network/CORS failure)
-      // and reports only "N of M providers responded". Re-query the quote
-      // endpoint ourselves so the actual cause reaches the user/console.
-      let quoteDetail = 'no additional detail available'
-      try {
-        const quoteResponse = await fetch(`${serviceURL}/quote`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fileSize: fileData.byteLength, retentionPeriod: hostingMinutes })
-        })
-        const quoteBody = await quoteResponse.text()
-        quoteDetail = `HTTP ${quoteResponse.status}: ${quoteBody}`
-      } catch (quoteError) {
-        quoteDetail = quoteError instanceof Error ? quoteError.message : String(quoteError)
-      }
-      throw new Error(`${(error as Error).message} (root cause from ${serviceURL}/quote -- ${quoteDetail})`)
+    // StorageUploader.publishFile() always runs a pre-flight /quote step
+    // across multiple providers (a resilience feature added in @bsv/sdk 2.x)
+    // before uploading, which hid the real /upload error behind a generic
+    // "N of M providers responded" message. Call /upload directly instead,
+    // the way publishFile worked before that pre-check existed -- whatever
+    // retention-period rules the server enforces still apply either way.
+    const authFetch = new AuthFetch(walletClient)
+    const uploadInfoResponse = await authFetch.fetch(`${serviceURL}/upload`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fileSize: fileData.byteLength, retentionPeriod: hostingMinutes })
+    })
+    const uploadInfo = await uploadInfoResponse.json() as {
+      status: string
+      uploadURL: string
+      requiredHeaders: Record<string, string>
+      amount?: number
+      code?: string
+      description?: string
     }
-    const UHRPURL = uploadResult.uhrpURL
+    if (!uploadInfoResponse.ok || uploadInfo.status === 'error') {
+      throw new Error(
+        `Upload info request failed: HTTP ${uploadInfoResponse.status} -- ${uploadInfo.description ?? 'Upload route returned an error.'}`
+      )
+    }
+    const putResponse = await fetch(uploadInfo.uploadURL, {
+      method: 'PUT',
+      body: fileData as BodyInit,
+      headers: {
+        'Content-Type': uploadableFile.type,
+        ...uploadInfo.requiredHeaders
+      }
+    })
+    if (!putResponse.ok) {
+      throw new Error(`File upload failed: HTTP ${putResponse.status}`)
+    }
+    const UHRPURL = StorageUtils.getURLForFile(fileData)
 
     // TODO 5: Generate UHRP hash
     const UHRHash = StorageUtils.getHashFromURL(UHRPURL)
