@@ -14,7 +14,7 @@
   "dependencies": {
     "@bsv/auth-express-middleware": "^1.1.2",
     "@bsv/payment-express-middleware": "^1.0.6",
-    "@bsv/sdk": "^1.4.22",
+    "@bsv/sdk": "^2.1.4",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^5.11.16",

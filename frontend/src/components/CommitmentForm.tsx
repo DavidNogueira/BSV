@@ -17,6 +17,7 @@ import React, { useState, FormEvent, ChangeEvent } from 'react'
 import { publishCommitment } from '../utils/publishCommitment'
 import { WalletClient } from '@bsv/sdk'
 
+const wallet = new WalletClient()
 const CommitmentForm = () => {
   const [file, setFile] = useState<File | null>(null)
   const [fileURL, setFileURL] = useState<string>('')
@@ -27,15 +28,39 @@ const CommitmentForm = () => {
   const hostingURL = 'https://nanostore.babbage.systems'
   const [committedURL, setCommittedURL] = useState<string | null>(null)
 
-  // TODO 1: Handle file input changes
-  // TODO 2: Handle form submission
-
-  const handleFileChange = async (e: FormEvent) => {
-    console.log('TODO')
+  //~ DONE 1: Handle file input changes
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setFile(e.target.files[0])
+    }
   }
-
+  //~ DONE 2: Handle form submission
   const handleFormSubmit = async (e: FormEvent) => {
-    console.log('TODO')
+    e.preventDefault()
+    setFormLoading(true)
+    try {
+      let urlToPublish = fileURL
+      if (!useURL && file) {
+        // If using file upload, create a temporary URL for the file
+        urlToPublish = URL.createObjectURL(file)
+      }
+      const identityKey = await wallet.getPublicKey({ identityKey: true })
+
+      const commitmentURL = await publishCommitment({
+        url: urlToPublish,
+        hostingMinutes: hostingTime,
+        address: identityKey.publicKey,
+        serviceURL: hostingURL,
+        testWerrLabel: false
+      })
+      setCommittedURL(commitmentURL)
+      console.log('Commitment published at:', commitmentURL)
+    } catch (error) {
+      console.error('Error publishing commitment:', error)
+    } finally {
+      setFormLoading(false)
+      setFormOpen(false)
+    }
   }
 
   return (
@@ -103,7 +128,14 @@ const CommitmentForm = () => {
             </form>
           </Dialog>
         </Grid>
-        // TODO 3: Display published UHRP URL
+        {/* // DONE 3: Display published UHRP URL */}
+        {committedURL && (
+          <Box mt={2}>
+            <Typography variant="body1">
+              Commitment published at: {committedURL}
+            </Typography>
+          </Box>
+        )}
       </Box>
     </Container>
   )
