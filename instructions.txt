@@ -1,0 +1,302 @@
+Step-by-Step Instructions
+1. Set Up Your Development Environment
+Follow the setup instructions from Lab L-1’s “Set Up Your Development Environment” section to create the project structure, configure package.json, deployment-info.json, and ensure the backend dependencies are installed. The backend structure is defined in the lab-13-14 directory.
+
+ 
+
+Create your root package.json. 
+
+Create backend/package.json to include:
+
+  "dependencies": {
+    "@bsv/overlay": "^0.2.1",
+    "@bsv/sdk": "^1.5.2",
+    "knex": "^3.1.0",
+    "mongodb": "^6.11.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/supertest": "^2.0.12",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "ts-standard": "^12.0.2",
+    "ts2md": "^0.2.0",
+    "typescript": "^5.2.2"
+  }
+2. Configure LARS/CARS Services
+Implement deployment-info.json. It configures LARS/CARS to load tm_uhrp and ls_uhrp. complete the TODO.
+
+ 
+
+Create root deployment-info.json:
+
+{
+  "schema": "bsv-app",
+  "schemaVersion": "1.0",
+
+  // TODO 1: Verify or implement topicManagers and lookupServices for tm_uhrp and ls_uhrp
+
+  "frontend": {
+    "language": "react",
+    "sourceDirectory": "./frontend"
+  },
+  "configs": [
+    {
+      "name": "Local LARS",
+      "network": "mainnet",
+      "provider": "LARS",
+      "run": ["backend", "frontend"]
+    },
+    {
+      "name": "babbage",
+      "provider": "CARS",
+      "CARSCloudURL": "https://cars.babbage.systems",
+      "projectID": "0e8cd9bf830ff26fa4d7daa5610047e3",
+      "network": "mainnet",
+      "deploy": ["backend", "frontend"],
+      "frontendHostingMethod": "HTTPS",
+      "frontendBuildDirectory": "frontend/dist"
+    },    
+    {
+      "name": "Babbage testnet",
+      "provider": "CARS",
+      "CARSCloudURL": "https://cars.babbage.systems",
+      "projectID": "6dd4b0fd24e1b48f792d35d740d9c01a",
+      "network": "testnet",
+      "deploy": ["backend", "frontend"],
+      "frontendHostingMethod": "HTTPS"
+    }
+  ]
+}
+3. Code Types
+Implement types.ts. It defines interfaces for MongoDB records and query results, used by ls_uhrp. Complete the TODOs.
+
+ 
+
+Create backend/src/types.ts:
+
+// TODO 1: Define UHRPRecord interface
+// TODO 2: Define UTXOReference interface
+4. Code Module Exports
+Implement mod.ts. It exports the Topic Manager, Lookup Service, and types for LARS/CARS. Complete the TODOs.
+
+ 
+
+Create backend/mod.ts:
+
+// TODO 1: Export UHRPLookupServiceFactory for ls_uhrp
+// TODO 2: Export UHRPTopicManager for tm_uhrp
+// TODO 3: Export types for UHRPRecord and UTXOReference
+// TODO 4: Export service metadata constant
+
+5. Set up MongoDB
+Install MongoDB locally (mongodb://localhost:27017) or use MongoDB Atlas.
+Create a database named uhrp with a collection named uhrp.
+Create root .env and add to .gitignore prevent exposing sensitive credentials:
+
+DB_CONNECTION=mongodb://localhost:27017
+PORT=8080
+NODE_ENV=development
+6. Choose and Set Up the Database
+For this lab, you’ll use MongoDB to store and retrieve data related to file storage commitments. However, feel free to choose any database engine like MySQL, PostgreSQL, or Neo4j.
+Set up your database by creating a database named uhrp and a collection named uhrp to store data such as UHRP URL, hosted file location, expiry time, file size, transaction ID (txid), and output index.
+7. Code Lookup Service Documentation
+Implement UHRPLookupDocs.md.ts. It provides documentation for ls_uhrp. Complete the TODO.
+
+ 
+
+Create backend/src/lookup-services/UHRPLookupDocs.md.ts:
+
+// TODO 1: Implement documentation string for ls_uhrp
+ 
+
+8. Code Topic Manager Documentation
+Implement UHRPTopicDocs.md.ts. It provides documentation for tm_uhrp. Complete the TODO.
+
+ 
+
+Create backend/src/topic-managers/UHRPTopicDocs.md.ts:
+
+// TODO 1: Implement documentation string for tm_uhrp
+9. Code the Topic Manager
+Implement UHRPTopicManager.ts. It validates UHRP tokens for tm_uhrp by checking PushDrop fields (protocol address, hash, URL, expiry, size), returning admissible outputs, building on Lab L-12’s Topic Manager. Complete the TODOs.
+
+ 
+
+Create backend/src/topic-managers/UHRPTopicManager.ts:
+
+import { AdmittanceInstructions, TopicManager } from '@bsv/overlay'
+import { Transaction, PushDrop, Utils } from '@bsv/sdk'
+import uhrpTopicDocs from './UHRPTopicDocs.md.js'
+
+export default class UHRPTopicManager implements TopicManager {
+  identifyNeededInputs?: ((beef: number[]) => Promise<Array<{ txid: string; outputIndex: number }>>) | undefined
+  async getDocumentation(): Promise<string> {
+    return uhrpTopicDocs
+  }
+
+  async getMetaData(): Promise<{ name: string; shortDescription: string; iconURL?: string; version?: string; informationURL?: string }> {
+    return {
+      name: 'Universal Hash Resolution Protocol',
+      shortDescription: 'Manages UHRP content availability advertisements.'
+    }
+  }
+
+  async identifyAdmissibleOutputs(beef: number[], previousCoins: number[]): Promise<AdmittanceInstructions> {
+    try {
+      console.log('previous UTXOs', previousCoins.length)
+      const outputs: number[] = []
+      const parsedTransaction = Transaction.fromBEEF(beef)
+
+      for (const [i, output] of parsedTransaction.outputs.entries()) {
+        try {
+ 
+         // TODO 1: Decode UHRP token
+         // TODO 2: Validate token fields
+ 
+          outputs.push(i)
+        } catch (error) {
+          console.error('Error with output', i, error)
+        }
+      }
+
+      if (outputs.length === 0) {
+        throw new Error('This transaction does not publish a valid UHRP token!')
+      }
+
+      return {
+        coinsToRetain: previousCoins,
+        outputsToAdmit: outputs
+      }
+    } catch (error) {
+      return {
+        coinsToRetain: [],
+        outputsToAdmit: []
+      }
+    }
+  }
+}
+10. Code the Lookup Service
+Implement UHRPLookupServiceFactory.ts. It stores UHRP records in MongoDB for ls_uhrp, handles admissibility/spend/eviction events, and supports queries by outpoint, uhrpUrl, expiryTime, or hostIdentityKey, extending Lab L-12’s Lookup Service. Complete the TODOs.
+
+ 
+
+Create backup/src/lookup-services/UHRPLookupServiceFactory.ts:
+
+import { AdmissionMode, LookupService, OutputAdmittedByTopic, OutputSpent, SpendNotificationMode } from '@bsv/overlay'
+import { PushDrop, Utils, StorageUtils } from '@bsv/sdk'
+import { UHRPRecord, UTXOReference } from '../types.js'
+import { Db, Collection } from 'mongodb'
+import uhrpLookupDocs from './UHRPLookupDocs.md.js'
+
+class UHRPLookupService implements LookupService {
+  readonly admissionMode: AdmissionMode = 'locking-script'
+  readonly spendNotificationMode: SpendNotificationMode = 'none'
+  records: Collection<UHRPRecord>
+
+  constructor(db: Db) {
+    this.records = db.collection<UHRPRecord>('uhrp')
+  }
+
+  async getDocumentation(): Promise<string> {
+    return uhrpLookupDocs
+  }
+
+  async getMetaData(): Promise<{ name: string; shortDescription: string; iconURL?: string; version?: string; informationURL?: string }> {
+    return {
+      name: 'UHRP Lookup Service',
+      shortDescription: 'Lookup Service for User file hosting commitment tokens'
+    }
+  }
+
+  async outputAdmittedByTopic(payload: OutputAdmittedByTopic) {
+    if (payload.mode !== 'locking-script') throw new Error('Invalid payload')
+    const { topic, txid, outputIndex, lockingScript } = payload
+    if (topic !== 'tm_uhrp') return
+
+    // TODO 1: Decode UHRP token fields
+    // TODO 2: Store UHRP fields in MongoDB
+
+  }
+
+  async outputSpent(payload: OutputSpent) {
+    if (payload.mode !== 'none') throw new Error('Invalid payload')
+    const { topic, txid, outputIndex } = payload
+    if (topic !== 'tm_uhrp') return
+
+    // TODO 3: Remove spent commitment
+
+  }
+
+  async outputEvicted(txid: string, outputIndex: number) {
+
+    // TODO 4: Remove evicted commitment
+
+  }
+
+  async lookup({ query }: any): Promise<UTXOReference[]> {
+    // TODO 5: Validate query
+    // TODO 6: Handle query
+
+  }
+}
+
+export default (db: Db) => new UHRPLookupService(db)
+11. Configure TypeScript Settings
+Implement TypeScript configuration files in backend. Complete the TODOs.
+
+ 
+
+Create backend/tsconfig.base.json:
+
+// TODO 1: Add required base TypeScript settings
+Create backend/tsconfig.eslint.json:
+
+// TODO 1: Add required ESLint TypeScript settings
+Create backend/tsconfig.esm.json:
+
+// TODO 1: Add required ESM compilation settings
+Create backend/tsconfig.types.json:
+
+// TODO 1: Add required type declaration settings
+ 
+
+Create your backend/.dockerignore.
+
+12. Install dependencies
+Finally, ensure all dependencies are installed by running npm install commands:
+
+1st: In your root directory (lab-l13-14).
+2nd: In your backend directory.
+3rd:In your frontend directory.
+Execute the File Storage Frontend Application
+Ensure Metanet client is running to support wallet operations.
+Run LARS from the root directory.
+ 
+
+Start the development environment:
+Navigate to the root directory and type npm run start. 
+This will start both the Vite frontend and the LARS backend.
+Test Your File Storage Commitment Backend Ensure MongoDB is running to support commitment storage:
+Open your browser and navigate to localhost:5173.
+Use your UI to test:
+Commitment Submission: Upload a small image (e.g., test.jpg), set hosting time to 60 minutes, submit. Verify:
+UHRP URL displays in the UI.
+Console logs "Commitment submitted to backend: <txid>" and "UHRP URL: <uhrp_url>".
+Backend stores commitment in MongoDB (check uhrp collection).
+URL Input: Click "Switch to URL Input", enter https://example.com/image.jpg, set hosting time to 60 minutes, submit. Verify:
+UHRP URL displays in the UI.
+Console logs "Commitment submitted to backend: <txid>" and "UHRP URL: <uhrp_url>".
+Commitment Query: Use the UI's lookup feature (if implemented) or curl to query by txid and verify:
+curl http://localhost:8080/lookup?txid=<transaction_id>&outputIndex=0
+Console logs "Queried commitment: <uhrp_url>", MongoDB returns uhrpUrl, expiryTime, fileSize.
+Edge Cases:
+Submit without file/URL: Console logs "No file or URL provided".
+Negative or zero hosting time: Console logs "Invalid hosting time".
+Invalid URL (e.g., http://invalid): Console logs "Invalid URL format".
+Invalid UHRP token: Console logs "Token validation failed" with 400 error.
+Check LARS service via console logs: "Backend running at http://localhost:8080", "Commitment stored: <uhrp_url>", "Query response: <uhrp_url>".
+Optionally, add toast notifications:
+For success (e.g., "Commitment submitted!") or errors (e.g., "Invalid token"), like Lab L-12.
+ 
+Run Deployed App (Interact with the reference working version)
