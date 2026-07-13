@@ -25,6 +25,7 @@ export async function publishCommitment({
     console.log('Starting publishCommitment')
     console.log('URL:', url)
     console.log('Service URL:', serviceURL)
+    console.log('Hosting minutes:', hostingMinutes)
 
     // TODO 1: Fetch file from URL
     const response = await fetch(url)
@@ -49,17 +50,57 @@ export async function publishCommitment({
     }
 
     // TODO 4: Upload file and get UHRP URL
-    const uploadResult = await storageUploader.publishFile({
-      file: uploadableFile,
-      retentionPeriod: hostingMinutes
-    })
+    let uploadResult
+    try {
+      uploadResult = await storageUploader.publishFile({
+        file: uploadableFile,
+        retentionPeriod: hostingMinutes
+      })
+    } catch (error) {
+      // StorageUploader.publishFile's pre-flight /quote step swallows the
+      // real per-provider error (HTTP status, body, network/CORS failure)
+      // and reports only "N of M providers responded". Re-query the quote
+      // endpoint ourselves so the actual cause reaches the user/console.
+      let quoteDetail = 'no additional detail available'
+      try {
+        const quoteResponse = await fetch(`${serviceURL}/quote`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileSize: fileData.byteLength, retentionPeriod: hostingMinutes })
+        })
+        const quoteBody = await quoteResponse.text()
+        quoteDetail = `HTTP ${quoteResponse.status}: ${quoteBody}`
+      } catch (quoteError) {
+        quoteDetail = quoteError instanceof Error ? quoteError.message : String(quoteError)
+      }
+      throw new Error(`${(error as Error).message} (root cause from ${serviceURL}/quote -- ${quoteDetail})`)
+    }
     const UHRPURL = uploadResult.uhrpURL
 
     // TODO 5: Generate UHRP hash
     const UHRHash = StorageUtils.getHashFromURL(UHRPURL)
 
     // TODO 6: Calculate expiry time
-    const { expiryTime } = await storageUploader.findFile(UHRPURL)
+    // Right after a paid upload, the storage host's own /find route can
+    // briefly 500 before the new file finishes indexing server-side, so
+    // retry a few times with backoff instead of failing on the first miss.
+    let expiryTime: number | undefined
+    let findFileError: unknown
+    for (let attempt = 0; attempt < 5 && expiryTime === undefined; attempt++) {
+      if (attempt > 0) {
+        await new Promise(resolve => setTimeout(resolve, attempt * 1000))
+      }
+      try {
+        expiryTime = (await storageUploader.findFile(UHRPURL)).expiryTime
+      } catch (error) {
+        findFileError = error
+      }
+    }
+    if (expiryTime === undefined) {
+      throw findFileError instanceof Error
+        ? findFileError
+        : new Error('Failed to retrieve file metadata after upload.')
+    }
 
     // TODO 7: Create and broadcast UHRP token
     // This is our own on-chain commitment receipt, not the UHRP host advertisement

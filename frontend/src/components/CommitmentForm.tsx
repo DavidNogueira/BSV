@@ -18,12 +18,10 @@ import React, { useState, FormEvent, ChangeEvent } from 'react'
 import { publishCommitment } from '../utils/publishCommitment'
 import { WalletClient, StorageDownloader } from '@bsv/sdk'
 
-const MIN_HOSTING_MINUTES = 15
-
 const CommitmentForm = () => {
   const [file, setFile] = useState<File | null>(null)
   const [fileURL, setFileURL] = useState<string>('')
-  const [hostingTime, setHostingTime] = useState<number>(MIN_HOSTING_MINUTES)
+  const [hostingTime, setHostingTime] = useState<number>(1)
   const [formOpen, setFormOpen] = useState<boolean>(false)
   const [formLoading, setFormLoading] = useState<boolean>(false)
   const [useURL, setUseURL] = useState<boolean>(false)
@@ -50,9 +48,6 @@ const CommitmentForm = () => {
         : file !== null
           ? URL.createObjectURL(file)
           : ''
-      if (hostingTime < MIN_HOSTING_MINUTES) {
-        throw new Error(`Hosting time must be at least ${MIN_HOSTING_MINUTES} minutes.`)
-      }
       const walletClient = new WalletClient()
       const { publicKey: address } = await walletClient.getPublicKey({
         identityKey: true
@@ -93,7 +88,9 @@ const CommitmentForm = () => {
         throw new Error('No host is currently serving this file yet.')
       }
       if (newWindow === null) {
-        throw new Error('Your browser blocked the popup. Please allow popups for this site and try again.')
+        throw new Error(
+          'Your browser blocked the popup. Please allow popups for this site and try again.'
+        )
       }
       newWindow.location.href = httpUrls[0]
     } catch (error) {
@@ -164,8 +161,6 @@ const CommitmentForm = () => {
                   margin="normal"
                   onChange={e => setHostingTime(Number(e.target.value))}
                   value={hostingTime}
-                  inputProps={{ min: MIN_HOSTING_MINUTES }}
-                  helperText={`Minimum ${MIN_HOSTING_MINUTES} minutes`}
                   required
                 />
                 {errorMessage !== null && (
