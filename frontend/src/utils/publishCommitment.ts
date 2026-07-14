@@ -5,6 +5,7 @@ import {
   TopicBroadcaster,
   WalletClient,
   StorageUploader,
+  StorageDownloader,
   StorageUtils,
   WERR_REVIEW_ACTIONS
 } from '@bsv/sdk'
@@ -49,7 +50,7 @@ export async function publishCommitment({
     //~ DONE 4: Upload file and get UHRP URL
     const UHRPURL = await storageUploader.publishFile({
       file: uploadableFile,
-      retentionPeriod: hostingMinutes * 60 // Convert minutes to seconds
+      retentionPeriod: hostingMinutes // nanostore's retentionPeriod is already in minutes
     })
     console.log('Generated UHRP URL:', UHRPURL)
 
@@ -60,20 +61,47 @@ export async function publishCommitment({
     //~ DONE 6: Calculate expiry time
     const expiryTime = Math.floor(Date.now() / 1000) + hostingMinutes * 60
 
+    // Resolve the real, publicly-advertised HTTP URL for this file. nanostore
+    // publishes its own advertisement on the public ls_uhrp network, which can
+    // lag slightly behind the upload finishing, so retry with backoff.
+    const downloader = new StorageDownloader()
+    let resolvedURL: string | undefined
+    for (let attempt = 0; attempt < 5 && resolvedURL === undefined; attempt++) {
+      if (attempt > 0) {
+        await new Promise(resolve => setTimeout(resolve, attempt * 1000))
+      }
+      const candidateURLs = await downloader.resolve(UHRPURL.uhrpURL)
+      if (candidateURLs.length > 0) {
+        resolvedURL = candidateURLs[0]
+      }
+    }
+    if (resolvedURL === undefined) {
+      throw new Error('Could not resolve a public HTTP URL for the uploaded file yet. Please try again shortly.')
+    }
+
     //~ DONE 7: Create and broadcast UHRP token
     const pushDrop = new PushDrop(walletClient)
+    const protocolID: [0 | 1 | 2, string] = [1, 'tm uhrp']
+    const keyID = '1'
+    const counterparty = 'self'
+    // The address field must match the actual locking public key so the
+    // UHRPTopicManager's address/locking-key consistency check passes.
+    const { publicKey: addressHex } = await walletClient.getPublicKey({
+      protocolID,
+      keyID,
+      counterparty
+    })
     const lockingScript = await pushDrop.lock(
       [
-        // Utils.toArray(UHRHash),
-        Utils.toArray('1UHRPYnMHPuQ5Tgb3AF8JXqwKkmZVy5hG'),
+        Utils.toArray(addressHex, 'hex'),
         UHRHash,
-        Utils.toArray(UHRPURL.uhrpURL),
-        Utils.toArray(expiryTime.toString()),
-        Utils.toArray(contentLength.toString())
+        Utils.toArray(resolvedURL),
+        new Utils.Writer().writeVarIntNum(expiryTime).toArray(),
+        new Utils.Writer().writeVarIntNum(contentLength).toArray()
       ],
-      [1, 'tm uhrp'],
-      '1',
-      'self'
+      protocolID,
+      keyID,
+      counterparty
     )
 
     const tx = await walletClient.createAction({
@@ -98,7 +126,7 @@ export async function publishCommitment({
     const sentTx = Transaction.fromAtomicBEEF(atomicTx)
     await broadcaster.broadcast(sentTx)
 
-    console.log('Transaction created and broadcasted:', sentTx.toHex())
+    console.log('Transaction created and broadcasted:', sentTx.id('hex'))
     return `${UHRPURL.uhrpURL}`
   } catch (error) {
     console.error('Error creating commitment:', error)

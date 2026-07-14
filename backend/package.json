@@ -1,0 +1,30 @@
+{
+  "name": "lab-l14-backend",
+  "version": "1.0.0",
+  "description": "Lab L-13/14 Backend: UHRP Topic Manager and Lookup Service",
+  "main": "mod.ts",
+  "scripts": {
+    "test": "jest",
+    "lint": "ts-standard --fix src/**/*.ts",
+    "compile": "tsc -b"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@bsv/overlay": "^2.2.0",
+    "@bsv/sdk": "^2.1.6",
+    "knex": "^3.3.0",
+    "mongodb": "^7.5.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^26.1.1",
+    "@types/supertest": "^7.2.0",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.11",
+    "ts-standard": "^12.0.2",
+    "ts2md": "^0.2.8",
+    "typescript": "^5.9.3"
+  }
+}
