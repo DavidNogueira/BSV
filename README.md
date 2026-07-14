@@ -31,15 +31,17 @@ cd backend && npm install   # backend
 cd ../frontend && npm install # frontend
 ```
 
-### 2. Create the root `.env`
+### 2. MongoDB — nothing to set up manually
 
+You do **not** need to install MongoDB, or create any database/collection by hand. As long as Docker Desktop is running, `npm start` (see below) makes LARS generate its own `docker-compose.yml` (in the gitignored `local-data/` folder) with a `mongo:6.0` container, and wires our `ls_uhrp` lookup service to it automatically — because `deployment-info.json` already has `"backend"` in its `run` list and `lookupServices.ls_uhrp.hydrateWith: "mongo"`. The `uhrp` collection is created lazily by MongoDB itself the first time a commitment is stored.
+
+You can optionally create a root `.env` with:
 ```
 DB_CONNECTION=mongodb://localhost:27017
 PORT=8080
 NODE_ENV=development
 ```
-
-(This file is already in `.gitignore`.)
+but be aware this is **not actually read** by the backend in this LARS-managed setup — the Mongo connection LARS uses is generated internally (its own `MONGO_URL`, wired straight into the Docker container), independent of this file. It's only kept here for parity with the generic lab instructions. (The file is already in `.gitignore` regardless.)
 
 ### 3. Start everything
 
