@@ -104,10 +104,10 @@ export async function publishCommitment({
     // lag slightly behind the upload finishing, so retry with backoff.
     const downloader = new StorageDownloader()
     let resolvedURL: string | undefined
-    const maxAttempts = 12
+    const maxAttempts = 8
     for (let attempt = 0; attempt < maxAttempts && resolvedURL === undefined; attempt++) {
       if (attempt > 0) {
-        const waitMs = Math.min(attempt * 2000, 10000)
+        const waitMs = Math.min(attempt * 2000, 8000)
         console.log(`Advertisement not yet propagated, retrying in ${waitMs / 1000}s (attempt ${attempt + 1}/${maxAttempts})...`)
         await new Promise(resolve => setTimeout(resolve, waitMs))
       }
