@@ -1,2 +1,0 @@
-db.uhrp.countDocuments()
-db.uhrp.find().pretty()
