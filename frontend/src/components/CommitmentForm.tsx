@@ -18,10 +18,11 @@ import { publishCommitment } from '../utils/publishCommitment'
 import { WalletClient } from '@bsv/sdk'
 
 const wallet = new WalletClient()
+const MIN_HOSTING_MINUTES = 15
 const CommitmentForm = () => {
   const [file, setFile] = useState<File | null>(null)
   const [fileURL, setFileURL] = useState<string>('')
-  const [hostingTime, setHostingTime] = useState<number>(0)
+  const [hostingTime, setHostingTime] = useState<number>(MIN_HOSTING_MINUTES)
   const [formOpen, setFormOpen] = useState<boolean>(false)
   const [formLoading, setFormLoading] = useState<boolean>(false)
   const [useURL, setUseURL] = useState<boolean>(false)
@@ -37,6 +38,11 @@ const CommitmentForm = () => {
   //~ DONE 2: Handle form submission
   const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault()
+    if (formLoading) return // guard against re-entrant submits
+    if (hostingTime < MIN_HOSTING_MINUTES) {
+      console.error(`Invalid hosting time: must be at least ${MIN_HOSTING_MINUTES} minutes.`)
+      return
+    }
     setFormLoading(true)
     try {
       let urlToPublish = fileURL
@@ -112,6 +118,8 @@ const CommitmentForm = () => {
                   margin="normal"
                   onChange={e => setHostingTime(Number(e.target.value))}
                   value={hostingTime}
+                  inputProps={{ min: MIN_HOSTING_MINUTES }}
+                  helperText={`Minimum ${MIN_HOSTING_MINUTES} minutes`}
                   required
                 />
               </DialogContent>

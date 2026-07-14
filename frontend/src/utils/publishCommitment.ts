@@ -11,6 +11,13 @@ import {
 } from '@bsv/sdk'
 import { UploadableFile } from '@bsv/sdk/dist/types/src/storage/StorageUploader'
 
+// Diagnostic circuit breaker: publishCommitment should only ever be in flight
+// once per user click. If something calls it in a tight loop, fail fast
+// instead of repeating the whole network flow thousands of times, and dump
+// a stack trace once so we can see who the repeated caller actually is.
+let recentCallTimestamps: number[] = []
+let circuitBreakerTripped = false
+
 export async function publishCommitment({
   url,
   hostingMinutes,
@@ -24,6 +31,16 @@ export async function publishCommitment({
   serviceURL?: string
   testWerrLabel: boolean
 }): Promise<string> {
+  const now = Date.now()
+  recentCallTimestamps.push(now)
+  recentCallTimestamps = recentCallTimestamps.filter(t => now - t < 5000)
+  if (recentCallTimestamps.length > 20) {
+    if (!circuitBreakerTripped) {
+      circuitBreakerTripped = true
+      console.trace('publishCommitment called more than 20 times in 5 seconds -- circuit breaker tripped')
+    }
+    throw new Error('publishCommitment circuit breaker tripped: called too many times in a short window')
+  }
   try {
     console.log('Starting publishCommitment')
     console.log('URL:', url)
@@ -48,10 +65,31 @@ export async function publishCommitment({
       type: file.headers.get('content-type') || 'application/octet-stream'
     }
     //~ DONE 4: Upload file and get UHRP URL
-    const UHRPURL = await storageUploader.publishFile({
-      file: uploadableFile,
-      retentionPeriod: hostingMinutes // nanostore's retentionPeriod is already in minutes
-    })
+    let UHRPURL
+    try {
+      UHRPURL = await storageUploader.publishFile({
+        file: uploadableFile,
+        retentionPeriod: hostingMinutes // nanostore's retentionPeriod is already in minutes
+      })
+    } catch (error) {
+      // publishFile's internal /quote + /upload calls swallow the server's real
+      // error description, reporting only a generic HTTP status. /quote doesn't
+      // require payment and performs the same fileSize/retentionPeriod
+      // validation, so re-querying it directly surfaces the actual reason.
+      let detail = 'no additional detail available'
+      try {
+        const quoteResponse = await fetch(`${serviceURL}/quote`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileSize: contentLength, retentionPeriod: hostingMinutes })
+        })
+        const quoteBody = await quoteResponse.text()
+        detail = `HTTP ${quoteResponse.status}: ${quoteBody}`
+      } catch (diagError) {
+        detail = diagError instanceof Error ? diagError.message : String(diagError)
+      }
+      throw new Error(`${(error as Error).message} (root cause from ${serviceURL}/quote -- ${detail})`)
+    }
     console.log('Generated UHRP URL:', UHRPURL)
 
     //~ DONE 5: Generate UHRP hash
@@ -66,9 +104,12 @@ export async function publishCommitment({
     // lag slightly behind the upload finishing, so retry with backoff.
     const downloader = new StorageDownloader()
     let resolvedURL: string | undefined
-    for (let attempt = 0; attempt < 5 && resolvedURL === undefined; attempt++) {
+    const maxAttempts = 12
+    for (let attempt = 0; attempt < maxAttempts && resolvedURL === undefined; attempt++) {
       if (attempt > 0) {
-        await new Promise(resolve => setTimeout(resolve, attempt * 1000))
+        const waitMs = Math.min(attempt * 2000, 10000)
+        console.log(`Advertisement not yet propagated, retrying in ${waitMs / 1000}s (attempt ${attempt + 1}/${maxAttempts})...`)
+        await new Promise(resolve => setTimeout(resolve, waitMs))
       }
       const candidateURLs = await downloader.resolve(UHRPURL.uhrpURL)
       if (candidateURLs.length > 0) {
@@ -124,7 +165,10 @@ export async function publishCommitment({
     }
 
     const sentTx = Transaction.fromAtomicBEEF(atomicTx)
-    await broadcaster.broadcast(sentTx)
+    const broadcastResult = await broadcaster.broadcast(sentTx)
+    if (broadcastResult.status === 'error') {
+      throw new Error(`Broadcast to tm_uhrp failed: ${broadcastResult.code} -- ${broadcastResult.description}`)
+    }
 
     console.log('Transaction created and broadcasted:', sentTx.id('hex'))
     return `${UHRPURL.uhrpURL}`
